@@ -1,10 +1,47 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-slate-950">
+<html lang="en" class="bg-[#051a06]">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MOUAU Connect Beta — Connecting People. Creating Opportunities. Building Communities.</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: "#1D9D21",
+            slate: {
+              900: "#0b290d",
+              950: "#051a06",
+            },
+            blue: {
+              50: "#eefbf0",
+              100: "#d6f5d8",
+              200: "#b0ebb4",
+              300: "#7dd983",
+              400: "#47bd4e",
+              500: "#1D9D21",
+              600: "#1D9D21",
+              700: "#177e1a",
+              800: "#136316",
+              900: "#0e4b10",
+              950: "#072909",
+            },
+            indigo: {
+              800: "#136316",
+              950: "#08300a",
+            },
+            green: {
+              500: "#24b829",
+              600: "#1D9D21",
+              950: "#051e06",
+            },
+          },
+        },
+      },
+    };
+  </script>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -12,9 +49,9 @@
     :root { color-scheme: dark; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { scrollbar-width: none; }
-    *:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
+    *:focus-visible { outline: 2px solid #1D9D21; outline-offset: 2px; }
     input:-webkit-autofill {
-      -webkit-box-shadow: 0 0 0 1000px #0f172a inset;
+      -webkit-box-shadow: 0 0 0 1000px #072909 inset;
       -webkit-text-fill-color: #f8fafc;
     }
     @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
@@ -23,7 +60,7 @@
     .pop-in { animation: pop .2s ease-out; }
   </style>
 </head>
-<body class="bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-slate-100 antialiased min-h-screen">
+<body class="bg-gradient-to-br from-[#051a06] via-[#0a360c] to-[#072909] text-slate-100 antialiased min-h-screen">
   <div id="root"></div>
 
   <script type="text/babel">
@@ -284,7 +321,7 @@
 
       return (
         <main className="flex min-h-screen flex-col items-center justify-center px-4 py-10">
-          <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,rgba(37,99,235,0.32),transparent_65%)]" />
+          <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,rgba(29,157,33,0.35),transparent_65%)]" />
           <div className="pop-in relative w-full max-w-md rounded-3xl border border-blue-800/50 bg-slate-900/90 p-6 shadow-2xl backdrop-blur sm:p-8">
             <div className="mb-5 flex justify-center"><Logo /></div>
             <h1 className="text-center text-2xl font-extrabold text-white">
