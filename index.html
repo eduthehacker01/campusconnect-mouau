@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-neutral-900">
+<html lang="en" class="bg-slate-950">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,11 +12,10 @@
     :root { color-scheme: dark; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { scrollbar-width: none; }
-    *:focus-visible { outline: 2px solid #16a34a; outline-offset: 2px; }
-    /* Stop Chrome's blue/yellow autofill background */
+    *:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
     input:-webkit-autofill {
-      -webkit-box-shadow: 0 0 0 1000px #171717 inset;
-      -webkit-text-fill-color: #f5f5f5;
+      -webkit-box-shadow: 0 0 0 1000px #0f172a inset;
+      -webkit-text-fill-color: #f8fafc;
     }
     @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
     .toast-in { animation: slideUp .25s ease-out; }
@@ -24,7 +23,7 @@
     .pop-in { animation: pop .2s ease-out; }
   </style>
 </head>
-<body class="bg-neutral-900 text-neutral-100 antialiased">
+<body class="bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-slate-100 antialiased min-h-screen">
   <div id="root"></div>
 
   <script type="text/babel">
@@ -32,19 +31,46 @@
 
     /* ---------------- Config & mock data ---------------- */
     const CATEGORIES = {
-      hostel: { label: "Hostel", icon: "🏠", gradient: "from-green-800 via-green-900 to-neutral-900" },
-      vendor: { label: "Vendor", icon: "🛍️", gradient: "from-amber-700 via-amber-900 to-neutral-900" },
-      event:  { label: "Event",  icon: "🎉", gradient: "from-emerald-700 via-green-900 to-neutral-900" },
+      hostel: { label: "Hostel", icon: "🏠", gradient: "from-blue-800 via-blue-900 to-slate-950" },
+      vendor: { label: "Vendor", icon: "🛍️", gradient: "from-amber-600 via-amber-800 to-slate-950" },
+      event:  { label: "Event",  icon: "🎉", gradient: "from-emerald-700 via-teal-900 to-slate-950" },
     };
 
+    const NAV_SECTIONS = [
+      { key: "feed",      label: "Campus Feed",       icon: "📡", badge: "Live" },
+      { key: "colleges",  label: "Colleges & Depts",  icon: "🏛️" },
+      { key: "students",  label: "Student Directory", icon: "🎓", count: "3,480" },
+      { key: "lodges",    label: "Lodges & Housing",  icon: "🏠" },
+      { key: "vendors",   label: "Campus Vendors",    icon: "🛍️" },
+      { key: "events",    label: "SUG & Events",      icon: "🎉" },
+    ];
+
     const TABS = [
-      { key: "all",    label: "All" },
+      { key: "all",    label: "All Listings" },
       { key: "hostel", label: "Hostels & Lodges" },
       { key: "vendor", label: "Student Vendors" },
       { key: "event",  label: "Campus Events" },
     ];
 
     const DEPARTMENTS = ["COLPHYS", "COLNAS", "COLENG", "COLAMRUD", "COLANIM", "COLCRAN", "COLFAST", "COLMAS", "COLVET", "COLED"];
+
+    const COLLEGES_DATA = [
+      { code: "COLPHYS",  name: "College of Physical & Applied Sciences", depts: ["Computer Science", "Physics", "Mathematics", "Chemistry", "Statistics"], dean: "Prof. E. O. Chukwu", students: 620 },
+      { code: "COLNAS",   name: "College of Natural Sciences", depts: ["Microbiology", "Biochemistry", "Plant Science & Biotech", "Zoology"], dean: "Prof. N. A. Ibe", students: 540 },
+      { code: "COLENG",   name: "College of Engineering & Engineering Tech", depts: ["Civil Engineering", "Electrical/Electronics", "Mechanical", "Computer Engineering", "Agric & Bioresources"], dean: "Engr. Prof. U. Kalu", students: 710 },
+      { code: "COLMAS",   name: "College of Management Sciences", depts: ["Accounting", "Banking & Finance", "Business Administration", "Marketing", "Entrepreneurial Studies"], dean: "Prof. C. Nwachukwu", students: 590 },
+      { code: "COLAMRUD", name: "College of Agribusiness & Rural Development", depts: ["Agribusiness", "Agricultural Economics", "Rural Sociology & Extension"], dean: "Prof. I. N. Okoye", students: 380 },
+      { code: "COLVET",   name: "College of Veterinary Medicine", depts: ["Veterinary Anatomy", "Veterinary Surgery", "Vet Public Health", "Vet Pathology"], dean: "Prof. D. O. Eze", students: 290 },
+    ];
+
+    const STUDENTS_DATA = [
+      { id: 1, name: "Tobechi Okafor", regNo: "MOUAU/21/10482", college: "COLMAS", dept: "Accounting", level: "400L", role: "Final Year Senator", skills: ["Financial Modeling", "Tax Advisory", "SUG Parliament"], whatsapp: "2348012345601", online: true },
+      { id: 2, name: "Chidinma Nwosu", regNo: "MOUAU/22/18390", college: "COLPHYS", dept: "Computer Science", level: "300L", role: "GDSC Tech Lead", skills: ["React & Node.js", "UI/UX Design", "Hackathons"], whatsapp: "2348023456702", online: true },
+      { id: 3, name: "Kelechi Emenike", regNo: "MOUAU/20/09214", college: "COLENG", dept: "Computer Engineering", level: "500L", role: "NUESA President", skills: ["Embedded Systems", "Solar Automation", "CAD"], whatsapp: "2348034567803", online: false },
+      { id: 4, name: "Adaeze Uchendu", regNo: "MOUAU/23/22910", college: "COLNAS", dept: "Microbiology", level: "200L", role: "Class Rep", skills: ["Lab Research", "Academic Tutorials", "Event Host"], whatsapp: "2348045678904", online: true },
+      { id: 5, name: "Somtochukwu Igwe", regNo: "MOUAU/21/14002", college: "COLVET", dept: "Veterinary Medicine", level: "400L", role: "AVMS Welfare Dir.", skills: ["Pet Care", "Poultry Consult", "First Aid"], whatsapp: "2348056789005", online: true },
+      { id: 6, name: "Blessing Anyanwu", regNo: "MOUAU/22/17543", college: "COLAMRUD", dept: "Agribusiness", level: "300L", role: "Agro-Preneur", skills: ["Palm Oil Export", "Farm Supply", "Branding"], whatsapp: "2348067890106", online: false },
+    ];
 
     const INITIAL_LISTINGS = [
       { id: 1, category: "event",  title: "🏆 SUG Award & Gala Night 2026", price: "₦5,000 (Reg) / ₦15k (VIP)", location: "Convocation Arena", description: "The biggest night in MOUAU! Red carpet, student awards, live performances, comedy & after-party.", whatsapp: "2348011122233", image: null, isNew: true },
@@ -81,7 +107,7 @@
       name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join("") || "ST";
 
     const inputCls =
-      "w-full rounded-xl bg-neutral-900 border border-neutral-700 px-4 py-3 text-sm text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/40 transition";
+      "w-full rounded-xl bg-slate-950/80 border border-blue-800/60 px-4 py-3 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40 transition";
 
     /* ---------------- Icons ---------------- */
     const Icon = ({ children, className = "h-5 w-5" }) => (
@@ -97,17 +123,18 @@
     const ChatIcon   = (p) => <Icon {...p}><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></Icon>;
     const CheckIcon  = (p) => <Icon {...p}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><path d="m9 11 3 3L22 4" /></Icon>;
     const UploadIcon = (p) => <Icon {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" x2="12" y1="3" y2="15" /></Icon>;
+    const MenuIcon   = (p) => <Icon {...p}><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></Icon>;
 
     /* ---------------- Small UI pieces ---------------- */
     function Logo() {
       return (
         <div className="flex items-center gap-2.5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-600 font-black text-white shadow-lg shadow-green-900/40">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-green-600 font-black text-white shadow-lg shadow-blue-950/60">
             CC
           </div>
           <div className="leading-tight">
             <p className="text-base font-extrabold tracking-tight text-white">CampusConnect</p>
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-500">MOUAU</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-400">MOUAU UMUDIKE</p>
           </div>
         </div>
       );
@@ -116,7 +143,7 @@
     function Field({ label, children }) {
       return (
         <label className="block">
-          <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-neutral-400">{label}</span>
+          <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-blue-300/80">{label}</span>
           {children}
         </label>
       );
@@ -126,8 +153,8 @@
       if (!message) return null;
       return (
         <div className="pointer-events-none fixed inset-x-0 bottom-24 z-[70] flex justify-center px-4">
-          <div role="status" className="toast-in flex items-center gap-3 rounded-xl border border-green-600/40 bg-neutral-800 px-4 py-3 text-sm font-medium text-white shadow-2xl">
-            <span className="text-green-500"><CheckIcon /></span>
+          <div role="status" className="toast-in flex items-center gap-3 rounded-xl border border-blue-500/40 bg-slate-900/95 px-4 py-3 text-sm font-medium text-white shadow-2xl backdrop-blur">
+            <span className="text-green-400"><CheckIcon /></span>
             {message}
           </div>
         </div>
@@ -142,7 +169,6 @@
       const isSignup = mode === "signup";
 
       const update = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-
       const switchMode = (m) => { setMode(m); setError(""); };
 
       const submit = (e) => {
@@ -153,30 +179,29 @@
           if (form.password.length < 6) return setError("Password must be at least 6 characters.");
         }
         onAuth({
-          name: isSignup ? form.fullName.trim() : "MOUAU Student",
+          name: isSignup ? form.fullName.trim() : "Tobechi Okafor",
           studentId: form.studentId.trim().toUpperCase(),
-          department: isSignup ? form.department : "",
+          department: isSignup ? form.department : "COLMAS",
         });
       };
 
       return (
-        <main className="flex min-h-screen items-center justify-center bg-neutral-900 px-4 py-10">
-          <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,rgba(22,163,74,0.18),transparent_60%)]" />
-          <div className="pop-in relative w-full max-w-md rounded-3xl border border-neutral-700/60 bg-neutral-800 p-6 shadow-2xl sm:p-8">
+        <main className="flex min-h-screen items-center justify-center px-4 py-10">
+          <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,rgba(37,99,235,0.28),transparent_65%)]" />
+          <div className="pop-in relative w-full max-w-md rounded-3xl border border-blue-800/50 bg-slate-900/90 p-6 shadow-2xl backdrop-blur sm:p-8">
             <div className="mb-6 flex justify-center"><Logo /></div>
             <h1 className="text-center text-2xl font-bold text-white">
-              {isSignup ? "Join your campus network" : "Welcome back"}
+              {isSignup ? "Join your campus network" : "Welcome back, Lion"}
             </h1>
-            <p className="mt-1 text-center text-sm text-neutral-400">
-              Lodges, vendors & events around Umudike — all in one place.
+            <p className="mt-1 text-center text-sm text-blue-200/70">
+              Directory, lodges, vendors & SUG events around Umudike.
             </p>
 
-            {/* Toggle */}
-            <div className="mt-6 grid grid-cols-2 rounded-xl bg-neutral-900 p-1">
+            <div className="mt-6 grid grid-cols-2 rounded-xl bg-slate-950/90 p-1 border border-blue-900/50">
               {[["signin", "Sign In"], ["signup", "Create Account"]].map(([key, label]) => (
                 <button key={key} type="button" onClick={() => switchMode(key)}
                   className={`rounded-lg py-2.5 text-sm font-semibold transition ${
-                    mode === key ? "bg-green-600 text-white shadow" : "text-neutral-400 hover:text-amber-400"
+                    mode === key ? "bg-blue-600 text-white shadow" : "text-slate-400 hover:text-amber-400"
                   }`}>
                   {label}
                 </button>
@@ -210,15 +235,15 @@
               )}
 
               <button type="submit"
-                className="w-full rounded-xl bg-green-600 py-3 text-sm font-bold text-white shadow-lg shadow-green-900/40 transition hover:bg-green-500 active:scale-[.98]">
-                {isSignup ? "Create Account" : "Sign In"}
+                className="w-full rounded-xl bg-green-600 py-3 text-sm font-bold text-white shadow-lg shadow-green-950/50 transition hover:bg-green-500 active:scale-[.98]">
+                {isSignup ? "Create Account" : "Sign In to CampusConnect"}
               </button>
             </form>
 
-            <p className="mt-5 text-center text-sm text-neutral-400">
+            <p className="mt-5 text-center text-sm text-blue-200/70">
               {isSignup ? "Already have an account? " : "New to CampusConnect? "}
               <button type="button" onClick={() => switchMode(isSignup ? "signin" : "signup")}
-                className="font-semibold text-amber-500 hover:text-amber-400">
+                className="font-semibold text-amber-400 hover:text-amber-300">
                 {isSignup ? "Sign in" : "Create one"}
               </button>
             </p>
@@ -227,45 +252,124 @@
       );
     }
 
-    /* ---------------- 2. Header ---------------- */
-    function Header({ user, search, setSearch, onLogout }) {
+    /* ---------------- 2. General Top Navbar + Sub-Navbar ---------------- */
+    function GeneralNavbar({ user, search, setSearch, activeSection, setActiveSection, onOpenModal, onLogout }) {
       const [menuOpen, setMenuOpen] = useState(false);
+      const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
       return (
-        <header className="sticky top-0 z-50 border-b border-neutral-800 bg-neutral-900/95 backdrop-blur">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3">
+        <header className="sticky top-0 z-50 border-b border-blue-800/50 bg-slate-950/90 backdrop-blur-md shadow-lg shadow-blue-950/40">
+          {/* Top Bar: Logo, Search, Post Button & User Profile */}
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3">
+            <button onClick={() => setMobileNavOpen((o) => !o)} className="rounded-xl border border-blue-800/60 bg-blue-950/60 p-2 text-blue-200 lg:hidden" aria-label="Toggle navigation">
+              <MenuIcon />
+            </button>
+
             <Logo />
 
-            <div className="relative order-3 w-full md:order-2 md:mx-6 md:w-auto md:flex-1">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500">
+            {/* Search Input */}
+            <div className="relative order-3 w-full md:order-2 md:mx-4 md:w-auto md:flex-1">
+              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-300/60">
                 <SearchIcon className="h-4 w-4" />
               </span>
               <input type="search" value={search} onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search lodges, vendors, events…" aria-label="Search listings"
-                className={`${inputCls} rounded-full bg-neutral-800 py-2.5 pl-10`} />
+                placeholder="Search lodges, students, colleges, vendors, SUG events…" aria-label="Search CampusConnect"
+                className={`${inputCls} rounded-full bg-blue-950/60 py-2.5 pl-10`} />
             </div>
 
-            <div className="relative order-2 ml-auto md:order-3">
+            {/* Quick Action + Profile */}
+            <div className="relative order-2 ml-auto flex items-center gap-2.5 md:order-3">
+              <span className="hidden items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300 xl:inline-flex">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                2025/2026 Rain Session
+              </span>
+
+              <button onClick={onOpenModal}
+                className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-green-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-green-950/50 transition hover:bg-green-500">
+                <PlusIcon className="h-4 w-4" /> Post Listing
+              </button>
+
               <button onClick={() => setMenuOpen((o) => !o)} aria-label="Open profile menu"
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-neutral-900 ring-2 ring-amber-500/30 transition hover:ring-amber-500/60">
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-slate-950 ring-2 ring-amber-400/40 transition hover:ring-amber-400">
                 {initials(user.name)}
               </button>
+
               {menuOpen && (
-                <div className="pop-in absolute right-0 mt-2 w-60 rounded-2xl border border-neutral-700 bg-neutral-800 p-4 shadow-2xl">
-                  <p className="font-semibold text-white">{user.name}</p>
-                  <p className="text-xs text-neutral-400">{user.studentId}</p>
+                <div className="pop-in absolute right-0 top-12 mt-1 w-64 rounded-2xl border border-blue-800/60 bg-slate-900 p-4 shadow-2xl">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 font-bold text-white">
+                      {initials(user.name)}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-white">{user.name}</p>
+                      <p className="text-xs text-blue-300/70">{user.studentId}</p>
+                    </div>
+                  </div>
                   {user.department && (
-                    <span className="mt-2 inline-block rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-semibold text-amber-400">
-                      {user.department}
+                    <span className="mt-3 inline-block rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-semibold text-amber-400">
+                      {user.department} • Active Student
                     </span>
                   )}
                   <button onClick={onLogout}
-                    className="mt-4 w-full rounded-lg border border-neutral-700 py-2 text-sm font-medium text-neutral-300 transition hover:border-amber-500 hover:text-amber-400">
+                    className="mt-4 w-full rounded-lg border border-blue-800/60 bg-blue-950/50 py-2 text-sm font-medium text-blue-200 transition hover:border-amber-500 hover:text-amber-400">
                     Sign out
                   </button>
                 </div>
               )}
             </div>
           </div>
+
+          {/* Dedicated General Section Navbar Bar */}
+          <div className="border-t border-blue-900/60 bg-blue-950/70">
+            <nav className="no-scrollbar mx-auto flex max-w-7xl items-center gap-1.5 overflow-x-auto px-4 py-2" aria-label="General campus sections">
+              {NAV_SECTIONS.map((sec) => {
+                const active = activeSection === sec.key;
+                return (
+                  <button
+                    key={sec.key}
+                    onClick={() => { setActiveSection(sec.key); setMobileNavOpen(false); }}
+                    className={`flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-xs sm:text-sm font-semibold transition ${
+                      active
+                        ? "bg-blue-600 text-white shadow-md shadow-blue-950/60 ring-1 ring-blue-400/40"
+                        : "text-blue-200/80 hover:bg-blue-900/50 hover:text-white"
+                    }`}>
+                    <span>{sec.icon}</span>
+                    <span>{sec.label}</span>
+                    {sec.badge && (
+                      <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-emerald-300">
+                        {sec.badge}
+                      </span>
+                    )}
+                    {sec.count && (
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${active ? "bg-white/20 text-white" : "bg-blue-900/80 text-blue-300"}`}>
+                        {sec.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* Mobile Drawer for General Sections */}
+          {mobileNavOpen && (
+            <div className="border-t border-blue-800/60 bg-slate-900/95 px-4 py-3 lg:hidden">
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-blue-400">Academic & Social Core</p>
+              <div className="grid grid-cols-2 gap-2">
+                {NAV_SECTIONS.map((sec) => (
+                  <button
+                    key={sec.key}
+                    onClick={() => { setActiveSection(sec.key); setMobileNavOpen(false); }}
+                    className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-left text-xs font-semibold ${
+                      activeSection === sec.key ? "bg-blue-600 text-white" : "bg-blue-950/60 text-blue-200"
+                    }`}>
+                    <span>{sec.icon}</span>
+                    <span>{sec.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </header>
       );
     }
@@ -278,7 +382,7 @@
       )}`;
 
       return (
-        <article className="group flex flex-col overflow-hidden rounded-2xl border border-neutral-700/60 bg-neutral-800 shadow-lg transition duration-200 hover:-translate-y-0.5 hover:border-green-600/50 hover:shadow-green-900/20">
+        <article className="group flex flex-col overflow-hidden rounded-2xl border border-blue-800/50 bg-slate-900/85 shadow-lg backdrop-blur transition duration-200 hover:-translate-y-0.5 hover:border-blue-500/70 hover:shadow-blue-950/60">
           <div className="relative aspect-[16/10] overflow-hidden">
             {listing.image ? (
               <img src={listing.image} alt={listing.title} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
@@ -287,12 +391,12 @@
                 <span className="text-5xl drop-shadow-lg">{cat.icon}</span>
               </div>
             )}
-            <span className="absolute left-3 top-3 rounded-full bg-amber-500 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-neutral-900 shadow">
+            <span className="absolute left-3 top-3 rounded-full bg-amber-500 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-slate-950 shadow">
               {cat.label}
             </span>
             {listing.isNew && (
               <span className="absolute right-3 top-3 rounded-full bg-green-600 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow">
-                New
+                Featured
               </span>
             )}
           </div>
@@ -300,13 +404,13 @@
           <div className="flex flex-1 flex-col p-4">
             <h3 className="line-clamp-2 text-base font-bold leading-snug text-white">{listing.title}</h3>
             {listing.description && (
-              <p className="mt-1 line-clamp-2 text-sm text-neutral-400">{listing.description}</p>
+              <p className="mt-1 line-clamp-2 text-sm text-blue-200/70">{listing.description}</p>
             )}
 
             <div className="mt-auto flex items-center justify-between gap-2 pt-3">
               <span className="text-lg font-extrabold text-amber-400">{listing.price}</span>
-              <span className="inline-flex max-w-[55%] items-center gap-1 rounded-full bg-neutral-900 px-2.5 py-1 text-xs text-neutral-300">
-                <PinIcon className="h-3.5 w-3.5 shrink-0 text-green-500" />
+              <span className="inline-flex max-w-[55%] items-center gap-1 rounded-full bg-blue-950/80 border border-blue-800/50 px-2.5 py-1 text-xs text-blue-200">
+                <PinIcon className="h-3.5 w-3.5 shrink-0 text-green-400" />
                 <span className="truncate">{listing.location}</span>
               </span>
             </div>
@@ -320,6 +424,117 @@
       );
     }
 
+    /* ---------------- 3B. Student Directory & Colleges Views ---------------- */
+    function StudentDirectoryView({ search }) {
+      const q = search.trim().toLowerCase();
+      const list = STUDENTS_DATA.filter((s) =>
+        !q || [s.name, s.college, s.dept, s.role, ...s.skills].some((x) => x.toLowerCase().includes(q))
+      );
+
+      return (
+        <section>
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-blue-800/50 bg-blue-950/50 p-5">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-400">MOUAU Verified Network</span>
+              <h2 className="text-xl font-bold text-white sm:text-2xl">Student Directory & Leaders</h2>
+              <p className="text-sm text-blue-200/70">Connect with course reps, tech leads, SUG senators and student entrepreneurs.</p>
+            </div>
+            <div className="flex gap-4 text-center">
+              <div className="rounded-xl bg-slate-900/90 px-4 py-2.5 border border-blue-800/40">
+                <p className="text-lg font-extrabold text-blue-400">3,480</p>
+                <p className="text-[11px] uppercase text-blue-200/70">Active Students</p>
+              </div>
+              <div className="rounded-xl bg-slate-900/90 px-4 py-2.5 border border-blue-800/40">
+                <p className="text-lg font-extrabold text-amber-400">10</p>
+                <p className="text-[11px] uppercase text-blue-200/70">Colleges</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {list.map((st) => (
+              <div key={st.id} className="flex flex-col justify-between rounded-2xl border border-blue-800/50 bg-slate-900/85 p-5 shadow-lg">
+                <div>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800 text-base font-extrabold text-white">
+                        {initials(st.name)}
+                        {st.online && <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-slate-900 bg-emerald-400" />}
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-white">{st.name}</h3>
+                        <p className="text-xs text-blue-300/80">{st.dept} • {st.level}</p>
+                      </div>
+                    </div>
+                    <span className="rounded-full bg-amber-500/15 px-2.5 py-1 text-xs font-bold text-amber-400">
+                      {st.college}
+                    </span>
+                  </div>
+
+                  <p className="mt-3 inline-block rounded-lg bg-blue-950/80 border border-blue-800/50 px-2.5 py-1 text-xs font-semibold text-blue-200">
+                    🎖️ {st.role}
+                  </p>
+
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {st.skills.map((sk) => (
+                      <span key={sk} className="rounded-full bg-slate-950/80 px-2.5 py-1 text-[11px] text-blue-200/80">
+                        {sk}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <a
+                  href={`https://wa.me/${st.whatsapp}?text=${encodeURIComponent(`Hi ${st.name.split(" ")[0]}, I found your profile on the CampusConnect MOUAU Student Directory!`)}`}
+                  target="_blank" rel="noopener noreferrer"
+                  className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-500">
+                  <ChatIcon className="h-4 w-4" /> Connect on WhatsApp
+                </a>
+              </div>
+            ))}
+          </div>
+        </section>
+      );
+    }
+
+    function CollegesView({ onSelectCollege }) {
+      return (
+        <section>
+          <div className="mb-6 rounded-2xl border border-blue-800/50 bg-blue-950/50 p-5">
+            <span className="text-xs font-bold uppercase tracking-wider text-amber-400">Academic Directory</span>
+            <h2 className="text-xl font-bold text-white sm:text-2xl">MOUAU Colleges & Departments</h2>
+            <p className="text-sm text-blue-200/70">Explore colleges, departments, deans and student communities across Michael Okpara University of Agriculture, Umudike.</p>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {COLLEGES_DATA.map((c) => (
+              <div key={c.code} className="flex flex-col justify-between rounded-2xl border border-blue-800/50 bg-slate-900/85 p-5 shadow-lg">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="rounded-xl bg-blue-600 px-3 py-1 text-xs font-extrabold text-white">{c.code}</span>
+                    <span className="text-xs font-semibold text-amber-400">{c.students} Students</span>
+                  </div>
+                  <h3 className="mt-3 text-base font-bold text-white">{c.name}</h3>
+                  <p className="mt-1 text-xs text-blue-300/75">Dean: {c.dean}</p>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {c.depts.map((d) => (
+                      <span key={d} className="rounded-lg bg-blue-950/80 border border-blue-800/40 px-2.5 py-1 text-xs text-blue-200">
+                        {d}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <button
+                  onClick={() => onSelectCollege(c.code)}
+                  className="mt-5 w-full rounded-xl border border-blue-600/60 bg-blue-600/20 py-2.5 text-xs font-bold text-blue-200 transition hover:bg-blue-600 hover:text-white">
+                  View {c.code} Students & Events →
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      );
+    }
+
     /* ---------------- 4. Post listing modal ---------------- */
     const EMPTY_FORM = { category: "hostel", title: "", price: "", location: "", description: "", whatsapp: "", image: null, imageName: "" };
 
@@ -327,10 +542,8 @@
       const [form, setForm] = useState(EMPTY_FORM);
       const [error, setError] = useState("");
 
-      // Reset whenever the modal closes
       useEffect(() => { if (!open) { setForm(EMPTY_FORM); setError(""); } }, [open]);
 
-      // Escape to close + lock background scroll
       useEffect(() => {
         if (!open) return;
         const onKey = (e) => e.key === "Escape" && onClose();
@@ -379,17 +592,17 @@
       };
 
       return (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4"
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-slate-950/80 backdrop-blur-sm sm:items-center sm:p-4"
              onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="post-title">
           <div onClick={(e) => e.stopPropagation()}
-               className="pop-in max-h-[92vh] w-full overflow-y-auto rounded-t-3xl border border-neutral-700 bg-neutral-800 p-6 shadow-2xl sm:max-w-lg sm:rounded-3xl">
+               className="pop-in max-h-[92vh] w-full overflow-y-auto rounded-t-3xl border border-blue-800/60 bg-slate-900 p-6 shadow-2xl sm:max-w-lg sm:rounded-3xl">
             <div className="mb-5 flex items-center justify-between">
               <div>
                 <h2 id="post-title" className="text-xl font-bold text-white">Post a Listing</h2>
-                <p className="text-sm text-neutral-400">Reach thousands of MOUAU students.</p>
+                <p className="text-sm text-blue-200/70">Reach thousands of MOUAU students.</p>
               </div>
               <button onClick={onClose} aria-label="Close"
-                className="rounded-full p-2 text-neutral-400 transition hover:bg-neutral-700 hover:text-white">
+                className="rounded-full p-2 text-blue-300 transition hover:bg-blue-900/50 hover:text-white">
                 <XIcon />
               </button>
             </div>
@@ -423,19 +636,19 @@
 
               <Field label="Image">
                 {form.image ? (
-                  <div className="relative overflow-hidden rounded-xl border border-neutral-700">
+                  <div className="relative overflow-hidden rounded-xl border border-blue-800">
                     <img src={form.image} alt="Preview" className="h-40 w-full object-cover" />
                     <button type="button" onClick={() => setForm({ ...form, image: null, imageName: "" })}
-                      className="absolute right-2 top-2 rounded-full bg-black/70 p-1.5 text-white hover:bg-black" aria-label="Remove image">
+                      className="absolute right-2 top-2 rounded-full bg-slate-950/80 p-1.5 text-white hover:bg-slate-950" aria-label="Remove image">
                       <XIcon className="h-4 w-4" />
                     </button>
-                    <p className="truncate bg-neutral-900 px-3 py-1.5 text-xs text-neutral-400">{form.imageName}</p>
+                    <p className="truncate bg-slate-950 px-3 py-1.5 text-xs text-blue-300">{form.imageName}</p>
                   </div>
                 ) : (
-                  <span className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-neutral-700 bg-neutral-900 px-4 py-6 text-center transition hover:border-green-600">
-                    <UploadIcon className="h-6 w-6 text-amber-500" />
-                    <span className="text-sm text-neutral-300">Tap to upload a photo</span>
-                    <span className="text-xs text-neutral-500">PNG or JPG, up to 5MB</span>
+                  <span className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-blue-800/70 bg-slate-950/60 px-4 py-6 text-center transition hover:border-blue-500">
+                    <UploadIcon className="h-6 w-6 text-amber-400" />
+                    <span className="text-sm text-blue-100">Tap to upload a photo</span>
+                    <span className="text-xs text-blue-300/60">PNG or JPG, up to 5MB</span>
                     <input type="file" accept="image/*" onChange={handleFile} className="sr-only" />
                   </span>
                 )}
@@ -451,11 +664,11 @@
 
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={onClose}
-                  className="flex-1 rounded-xl border border-neutral-700 py-3 text-sm font-semibold text-neutral-300 transition hover:border-neutral-500">
+                  className="flex-1 rounded-xl border border-blue-800 py-3 text-sm font-semibold text-blue-200 transition hover:border-blue-600">
                   Cancel
                 </button>
                 <button type="submit"
-                  className="flex-1 rounded-xl bg-green-600 py-3 text-sm font-bold text-white shadow-lg shadow-green-900/40 transition hover:bg-green-500 active:scale-[.98]">
+                  className="flex-1 rounded-xl bg-green-600 py-3 text-sm font-bold text-white shadow-lg shadow-green-950/50 transition hover:bg-green-500 active:scale-[.98]">
                   Publish Listing
                 </button>
               </div>
@@ -469,17 +682,26 @@
     function App() {
       const [user, setUser] = useState(null);
       const [listings, setListings] = useState(INITIAL_LISTINGS);
+      const [activeSection, setActiveSection] = useState("feed");
       const [activeTab, setActiveTab] = useState("all");
       const [search, setSearch] = useState("");
       const [modalOpen, setModalOpen] = useState(false);
       const [toast, setToast] = useState(null);
 
-      // Auto-dismiss toast
       useEffect(() => {
         if (!toast) return;
         const t = setTimeout(() => setToast(null), 3000);
         return () => clearTimeout(t);
       }, [toast]);
+
+      // Sync general navbar sections with category filters
+      const handleSectionChange = (sectionKey) => {
+        setActiveSection(sectionKey);
+        if (sectionKey === "lodges") setActiveTab("hostel");
+        else if (sectionKey === "vendors") setActiveTab("vendor");
+        else if (sectionKey === "events") setActiveTab("event");
+        else if (sectionKey === "feed") setActiveTab("all");
+      };
 
       const closeModal = useCallback(() => setModalOpen(false), []);
 
@@ -503,8 +725,9 @@
       };
 
       const handlePost = (listing) => {
-        setListings((prev) => [listing, ...prev]); // prepend
+        setListings((prev) => [listing, ...prev]);
         setModalOpen(false);
+        setActiveSection("feed");
         setActiveTab("all");
         setSearch("");
         setToast("Listing published successfully!");
@@ -513,6 +736,7 @@
 
       const handleLogout = () => {
         setUser(null);
+        setActiveSection("feed");
         setActiveTab("all");
         setSearch("");
       };
@@ -522,54 +746,99 @@
           {!user ? (
             <AuthScreen onAuth={handleAuth} />
           ) : (
-            <div className="min-h-screen bg-neutral-900">
-              <Header user={user} search={search} setSearch={setSearch} onLogout={handleLogout} />
+            <div className="min-h-screen">
+              <GeneralNavbar
+                user={user}
+                search={search}
+                setSearch={setSearch}
+                activeSection={activeSection}
+                setActiveSection={handleSectionChange}
+                onOpenModal={() => setModalOpen(true)}
+                onLogout={handleLogout}
+              />
 
-              <main className="mx-auto max-w-6xl px-4 pb-28 pt-6">
-                <section className="mb-5">
-                  <p className="text-sm font-medium text-amber-500">Umudike, Abia State</p>
-                  <h1 className="text-2xl font-bold text-white sm:text-3xl">
-                    Hi {user.name.split(" ")[0]}, find what you need on campus
-                  </h1>
+              <main className="mx-auto max-w-7xl px-4 pb-28 pt-6">
+                {/* Umudike Pulse Stats Hero Banner */}
+                <section className="mb-6 rounded-3xl border border-blue-800/50 bg-gradient-to-r from-blue-950/90 via-blue-900/70 to-slate-900/90 p-5 sm:p-6 shadow-xl">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/20 border border-blue-400/30 px-3 py-1 text-xs font-bold text-blue-300">
+                        ⚡ Umudike Pulse Network • MOUAU
+                      </span>
+                      <h1 className="mt-2 text-2xl font-extrabold text-white sm:text-3xl">
+                        Hi {user.name.split(" ")[0]}, explore your campus directory
+                      </h1>
+                      <p className="mt-1 text-sm text-blue-200/80">
+                        Verified student directory, off-campus lodges, campus vendors & SUG updates.
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 w-full lg:w-auto">
+                      <div className="rounded-2xl bg-slate-950/60 border border-blue-800/40 px-3.5 py-2.5">
+                        <p className="text-lg font-black text-blue-400">3,480</p>
+                        <p className="text-[10px] font-semibold uppercase text-blue-200/70">Active Students</p>
+                      </div>
+                      <div className="rounded-2xl bg-slate-950/60 border border-blue-800/40 px-3.5 py-2.5">
+                        <p className="text-lg font-black text-amber-400">142</p>
+                        <p className="text-[10px] font-semibold uppercase text-blue-200/70">Verified Lodges</p>
+                      </div>
+                      <div className="rounded-2xl bg-slate-950/60 border border-blue-800/40 px-3.5 py-2.5">
+                        <p className="text-lg font-black text-emerald-400">89</p>
+                        <p className="text-[10px] font-semibold uppercase text-blue-200/70">Campus Vendors</p>
+                      </div>
+                      <div className="rounded-2xl bg-slate-950/60 border border-blue-800/40 px-3.5 py-2.5">
+                        <p className="text-lg font-black text-purple-300">14</p>
+                        <p className="text-[10px] font-semibold uppercase text-blue-200/70">Live Events</p>
+                      </div>
+                    </div>
+                  </div>
                 </section>
 
-                {/* Filter tabs */}
-                <nav className="no-scrollbar -mx-4 mb-6 flex gap-2 overflow-x-auto px-4 pb-1" aria-label="Filter listings">
-                  {TABS.map((t) => {
-                    const active = activeTab === t.key;
-                    return (
-                      <button key={t.key} onClick={() => setActiveTab(t.key)}
-                        className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition ${
-                          active
-                            ? "border-green-600 bg-green-600 text-white shadow-lg shadow-green-900/40"
-                            : "border-neutral-700 bg-neutral-800 text-neutral-300 hover:border-amber-500/60 hover:text-amber-400"
-                        }`}>
-                        {t.label}
-                        <span className={`rounded-full px-2 text-xs ${active ? "bg-white/20" : "bg-neutral-900 text-neutral-400"}`}>
-                          {counts[t.key]}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </nav>
-
-                {/* Feed */}
-                {filtered.length > 0 ? (
-                  <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                    {filtered.map((l) => <ListingCard key={l.id} listing={l} />)}
-                  </div>
+                {/* Switch Views Based on General Navbar Selection */}
+                {activeSection === "students" ? (
+                  <StudentDirectoryView search={search} />
+                ) : activeSection === "colleges" ? (
+                  <CollegesView onSelectCollege={(code) => { setSearch(code); setActiveSection("students"); }} />
                 ) : (
-                  <div className="rounded-2xl border border-dashed border-neutral-700 bg-neutral-800/50 px-6 py-16 text-center">
-                    <p className="text-4xl">🔍</p>
-                    <p className="mt-3 font-semibold text-white">No listings found</p>
-                    <p className="mt-1 text-sm text-neutral-400">Try another search, or be the first to post one.</p>
-                  </div>
+                  <>
+                    {/* Filter tabs for Feed / Lodges / Vendors / Events */}
+                    <nav className="no-scrollbar -mx-4 mb-6 flex gap-2 overflow-x-auto px-4 pb-1" aria-label="Filter listings">
+                      {TABS.map((t) => {
+                        const active = activeTab === t.key;
+                        return (
+                          <button key={t.key} onClick={() => setActiveTab(t.key)}
+                            className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition ${
+                              active
+                                ? "border-blue-500 bg-blue-600 text-white shadow-lg shadow-blue-950/50"
+                                : "border-blue-800/60 bg-slate-900/80 text-blue-200 hover:border-amber-400/60 hover:text-amber-300"
+                            }`}>
+                            {t.label}
+                            <span className={`rounded-full px-2 text-xs ${active ? "bg-white/20 text-white" : "bg-blue-950 text-blue-300"}`}>
+                              {counts[t.key]}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </nav>
+
+                    {/* Feed */}
+                    {filtered.length > 0 ? (
+                      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                        {filtered.map((l) => <ListingCard key={l.id} listing={l} />)}
+                      </div>
+                    ) : (
+                      <div className="rounded-2xl border border-dashed border-blue-800/60 bg-slate-900/50 px-6 py-16 text-center">
+                        <p className="text-4xl">🔍</p>
+                        <p className="mt-3 font-semibold text-white">No listings found</p>
+                        <p className="mt-1 text-sm text-blue-200/70">Try another search, or be the first to post one.</p>
+                      </div>
+                    )}
+                  </>
                 )}
               </main>
 
               {/* FAB */}
               <button onClick={() => setModalOpen(true)} aria-label="Post a listing"
-                className="fixed bottom-6 right-6 z-40 flex h-14 items-center gap-2 rounded-full bg-green-600 px-4 font-semibold text-white shadow-2xl shadow-green-900/50 ring-4 ring-amber-500/20 transition hover:bg-green-500 active:scale-95 sm:px-6">
+                className="fixed bottom-6 right-6 z-40 flex h-14 items-center gap-2 rounded-full bg-green-600 px-4 font-semibold text-white shadow-2xl shadow-green-950/60 ring-4 ring-blue-400/20 transition hover:bg-green-500 active:scale-95 sm:px-6">
                 <PlusIcon className="h-6 w-6" />
                 <span className="hidden sm:inline">Post a Listing</span>
               </button>
