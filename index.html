@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MOUAU Connect Beta — Connecting People. Creating Opportunities. Building Communities.</title>
+  <title>MOUAU Connect — Connecting People. Creating Opportunities. Building Communities.</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -67,7 +67,7 @@
     const { useState, useEffect, useMemo } = React;
 
     /* ============================================================================
-       1. NAVIGATION & PLATFORM DATA (MOUAU + ABSU + SURROUNDING COMMUNITIES)
+       1. NAVIGATION & PLATFORM DATA (MOUAU & Umudike + SURROUNDING COMMUNITIES)
        ============================================================================ */
     const MAIN_NAV = [
       { key: "home",          label: "Home",          icon: "🏠", badge: "Feed" },
@@ -82,22 +82,22 @@
       { key: "bloggers",      label: "Bloggers",      icon: "✍️" },
       { key: "food",          label: "Food & Rest.",  icon: "🍲" },
       { key: "lostfound",     label: "Lost & Found",  icon: "🔍" },
-      { key: "roadmap",       label: "Roadmap & Beta",icon: "🚀" },
+      { key: "roadmap",       label: "Roadmap",       icon: "🚀" },
     ];
 
-    const LOCATIONS = ["All Locations", "MOUAU, Umudike", "ABSU, Uturu", "Umuahia & Surroundings"];
-    const DEPARTMENTS = ["COLPHYS (MOUAU)", "COLNAS (MOUAU)", "COLENG (MOUAU)", "COLMAS (MOUAU)", "COLAMRUD (MOUAU)", "COLVET (MOUAU)", "ABSU Uturu", "Umuahia Community"];
+    const LOCATIONS = ["All Locations", "MOUAU, Umudike", "82 Bus Stop & Ndoro", "Umuahia & Surroundings"];
+    const DEPARTMENTS = ["COLPHYS (MOUAU)", "COLNAS (MOUAU)", "COLENG (MOUAU)", "COLMAS (MOUAU)", "COLAMRUD (MOUAU)", "COLVET (MOUAU)", "COLED (MOUAU)", "Umuahia Community"];
 
     const SPONSORED_ADS = [
-      { id: "ad-1", title: "Crunchies & Mama Nkechi Combo Week — 20% Off Student ID", category: "Food & Restaurant", target: "MOUAU, Umudike", duration: "14 Days", reach: "4,820 views", description: "Flash your MOUAU or ABSU ID card for free delivery around Main Gate, 82 Bus Stop & Ahiaeke.", whatsapp: "2348023456789", sponsor: "Mama Nkechi Kitchen", verified: true },
+      { id: "ad-1", title: "Crunchies & Mama Nkechi Combo Week — 20% Off Student ID", category: "Food & Restaurant", target: "MOUAU, Umudike", duration: "14 Days", reach: "4,820 views", description: "Flash your MOUAU or Umudike ID card for free delivery around Main Gate, 82 Bus Stop & Ahiaeke.", whatsapp: "2348023456789", sponsor: "Mama Nkechi Kitchen", verified: true },
       { id: "ad-2", title: "King's Executive Barbershop & Spa — Freshers Cut Promo", category: "Beauty & Grooming", target: "MOUAU & Umuahia", duration: "7 Days", reach: "2,910 views", description: "Clean fade, dreadlock retwist & facial treatment at ₦1,500. Generator always on + free PS5 while waiting!", whatsapp: "2348033344455", sponsor: "King's Cuts Umudike", verified: true },
-      { id: "ad-3", title: "TechHub Fibre Wi-Fi & Co-Working Space", category: "Tech & Workspace", target: "MOUAU, ABSU & Umuahia", duration: "30 Days", reach: "8,140 views", description: "24/7 solar power, Starlink internet & quiet coding desks for remote workers and freelancers.", whatsapp: "2348055566677", sponsor: "Umudike TechHub", verified: true },
+      { id: "ad-3", title: "TechHub Fibre Wi-Fi & Co-Working Space", category: "Tech & Workspace", target: "MOUAU, Umudike & Umuahia", duration: "30 Days", reach: "8,140 views", description: "24/7 solar power, Starlink internet & quiet coding desks for remote workers and freelancers.", whatsapp: "2348055566677", sponsor: "Umudike TechHub", verified: true },
     ];
 
     const CAMPUS_NEWS = [
       { id: 1, title: "2025/2026 Rain Semester Lecture Timetable & Portal Registration Deadline", type: "Official Announcement", campus: "MOUAU, Umudike", date: "Today • 9:30 AM", official: true, summary: "All returning students are advised to complete course registration via the portal before Friday." },
       { id: 2, title: "SUG Inter-College Sports Festival & VC's Cup Kickoff Schedule", type: "Campus Update", campus: "MOUAU, Umudike", date: "Yesterday", official: true, summary: "Opening ceremony begins 3:00 PM at the Main Stadium. COLENG vs COLNAS." },
-      { id: 3, title: "ABSU & MOUAU Joint Tech Innovation Hackathon Announced", type: "Community News", campus: "ABSU, Uturu", date: "2 days ago", official: false, summary: "₦500,000 prize pool for student teams building local solutions in agriculture, fintech and education." },
+      { id: 3, title: "Umudike & MOUAU Joint Tech Innovation Hackathon Announced", type: "Community News", campus: "82 Bus Stop & Ndoro", date: "2 days ago", official: false, summary: "₦500,000 prize pool for student teams building local solutions in agriculture, fintech and education." },
     ];
 
     const INITIAL_MARKETPLACE = [
@@ -106,7 +106,7 @@
       { id: 103, name: "HP EliteBook 840 G5 — Core i5, 16GB RAM, 256GB SSD", category: "Electronics", condition: "Used", price: "₦245,000", location: "Umuahia & Surroundings", seller: "Apex Gadgets Hub", verified: true, description: "UK used clean laptop with backlit keyboard, 5+ hrs battery and free laptop bag.", whatsapp: "2348011122203" },
       { id: 104, name: "2-Burner Table Gas Cooker + 6kg Cylinder & Hose", category: "Home Appliances", condition: "Used", price: "₦24,500", location: "MOUAU, Umudike", seller: "Tobechi O.", verified: true, description: "Complete cooking set ready for a fresher moving into a self-con.", whatsapp: "2348011122204" },
       { id: 105, name: "Engineering & Basic Sciences Past Questions Compendium (100L–300L)", category: "Books", condition: "New", price: "₦3,500", location: "MOUAU, Umudike", seller: "Academic Press Club", verified: true, description: "Solved MTH, PHY, CHM & GST past questions with step-by-step workings.", whatsapp: "2348011122205" },
-      { id: 106, name: "Unisex Retro Oversized Streetwear Tees & Cargo Pants", category: "Fashion", condition: "New", price: "₦8,500", location: "ABSU, Uturu", seller: "DripPlug Uturu", verified: false, description: "Heavyweight cotton tees available in S, M, L, XL. Delivery to MOUAU & ABSU.", whatsapp: "2348011122206" },
+      { id: 106, name: "Unisex Retro Oversized Streetwear Tees & Cargo Pants", category: "Fashion", condition: "New", price: "₦8,500", location: "82 Bus Stop & Ndoro", seller: "DripPlug Uturu", verified: false, description: "Heavyweight cotton tees available in S, M, L, XL. Delivery to MOUAU & Umudike.", whatsapp: "2348011122206" },
     ];
 
     const INITIAL_JOBS = [
@@ -180,15 +180,15 @@
 
     const INITIAL_EVENTS = [
       { id: 301, title: "🏆 SUG Award & Gala Night 2026", category: "Social & Awards", date: "Fri, 27 Nov 2026 • 6:00 PM", venue: "Convocation Arena, MOUAU", location: "MOUAU, Umudike", organiser: "MOUAU SUG Executive Council", fee: "₦5,000 (Reg) / ₦15k (VIP)", interested: 342, going: 198, description: "The biggest night in MOUAU! Red carpet, student awards, live performances, comedy & after-party.", whatsapp: "2348011122233" },
-      { id: 302, title: "MOUAU & ABSU Tech Founders Summit 2026", category: "Tech Conference", date: "Sat, 05 Dec 2026 • 10:00 AM", venue: "Main Auditorium, MOUAU", location: "MOUAU, Umudike", organiser: "GDSC & Abia Tech Community", fee: "Free (RSVP Required)", interested: 215, going: 164, description: "Workshops on AI, Web3, remote tech jobs, and startup pitch competition with ₦500k seed grant.", whatsapp: "2348034567890" },
+      { id: 302, title: "MOUAU & Umudike Tech Founders Summit 2026", category: "Tech Conference", date: "Sat, 05 Dec 2026 • 10:00 AM", venue: "Main Auditorium, MOUAU", location: "MOUAU, Umudike", organiser: "GDSC & Abia Tech Community", fee: "Free (RSVP Required)", interested: 215, going: 164, description: "Workshops on AI, Web3, remote tech jobs, and startup pitch competition with ₦500k seed grant.", whatsapp: "2348034567890" },
       { id: 303, title: "COLPHYS Freshers' Night & Cultural Owambe", category: "Departmental Event", date: "Fri, 04 Dec 2026 • 5:00 PM", venue: "COLPHYS Lecture Theatre", location: "MOUAU, Umudike", organiser: "COLPHYS Social Director", fee: "₦2,000", interested: 178, going: 112, description: "Music, comedy, Mr & Miss COLPHYS pageantry and awards for the new 100L set.", whatsapp: "2348034567891" },
-      { id: 304, title: "Campus Worship & Night of Sound", category: "Church Programme", date: "Sun, 29 Nov 2026 • 4:00 PM", venue: "Chapel Grounds", location: "ABSU, Uturu", organiser: "Joint Christian Fellowship", fee: "Free", interested: 190, going: 145, description: "An evening of worship, drama, word and community prayer for exam success.", whatsapp: "2348034567892" },
+      { id: 304, title: "Campus Worship & Night of Sound", category: "Church Programme", date: "Sun, 29 Nov 2026 • 4:00 PM", venue: "Chapel Grounds", location: "82 Bus Stop & Ndoro", organiser: "Joint Christian Fellowship", fee: "Free", interested: 190, going: 145, description: "An evening of worship, drama, word and community prayer for exam success.", whatsapp: "2348034567892" },
     ];
 
     const INITIAL_OPPORTUNITIES = [
       { id: 401, title: "NNPC / Seplat JV Undergraduate National Scholarship 2026/2027", type: "Scholarship", source: "Seplat Energy Official Portal", eligibility: "200L & above in Engineering, Agriculture, Geosciences or Management with 3.5+ CGPA", deadline: "18 Days Left", grant: "₦250,000 / year", link: "https://seplatenergy.com" },
       { id: 402, title: "6-Month Paid SIWES Placement — IITA Ibadan & Umudike Root Crops Station", type: "SIWES / Internship", source: "NRCRI / IITA Youth Agripreneurs", eligibility: "300L/400L students in Agronomy, Plant Science, Biochemistry, Food Tech & Engineering", deadline: "12 Days Left", grant: "₦50,000 monthly stipend", link: "https://iita.org" },
-      { id: 403, title: "Tony Elumelu Foundation Student Entrepreneur Seed Grant", type: "Grant & Competition", source: "TEF Connect", eligibility: "Student founders across MOUAU & ABSU with early-stage agribusiness, retail or tech ventures", deadline: "25 Days Left", grant: "$5,000 non-refundable seed capital", link: "https://tefconnect.com" },
+      { id: 403, title: "Tony Elumelu Foundation Student Entrepreneur Seed Grant", type: "Grant & Competition", source: "TEF Connect", eligibility: "Student founders across MOUAU & Umudike with early-stage agribusiness, retail or tech ventures", deadline: "25 Days Left", grant: "$5,000 non-refundable seed capital", link: "https://tefconnect.com" },
       { id: 404, title: "Google Africa Developer Scholarship & Cloud Bootcamp", type: "Tech Bootcamp", source: "Andela / Pluralsight", eligibility: "Open to all students interested in Android, Web or Google Cloud Engineering", deadline: "9 Days Left", grant: "Free Certification + Swag", link: "https://developers.google.com" },
     ];
 
@@ -196,7 +196,7 @@
       { id: 501, title: "Affordable Website Design & Landing Pages for Small Businesses", category: "Website Development", provider: "Chidinma Nwosu (300L CS)", location: "MOUAU, Umudike", price: "From ₦35,000", rating: "4.9 ★ (27 reviews)", verified: true, description: "Contact me for modern business websites, student portfolios, e-commerce stores and SEO.", whatsapp: "2348023456702" },
       { id: 502, title: "Home & Hostel Laundry Pickup + Express Ironing", category: "Laundry", provider: "FreshFold Campus Laundry", location: "MOUAU, Umudike", price: "₦2,500 / basket", rating: "4.8 ★ (41 reviews)", verified: true, description: "Free pickup and delivery around 82 Bus Stop, Ndoro, Okwuta and on-campus hostels.", whatsapp: "2348051112202" },
       { id: 503, title: "Knotless Braids, Wig Revamp & Graduation Makeup", category: "Hairdressing & Makeup", provider: "GlamByAdaeze Studio", location: "MOUAU, Umudike", price: "From ₦4,000", rating: "5.0 ★ (34 reviews)", verified: true, description: "Home service available. Neat painless braids, frontal installation and convocation glam.", whatsapp: "2348045678904" },
-      { id: 504, title: "100L–200L Calculus, Physics & Programming Private Tutorials", category: "Private Tutoring", provider: "Engr. Somto & Team", location: "MOUAU & ABSU", price: "₦3,000 / month", rating: "4.9 ★ (52 reviews)", verified: true, description: "Weekend small-group coaching and past-question drills to boost your GPA.", whatsapp: "2348056789005" },
+      { id: 504, title: "100L–200L Calculus, Physics & Programming Private Tutorials", category: "Private Tutoring", provider: "Engr. Somto & Team", location: "MOUAU & Umudike", price: "₦3,000 / month", rating: "4.9 ★ (52 reviews)", verified: true, description: "Weekend small-group coaching and past-question drills to boost your GPA.", whatsapp: "2348056789005" },
       { id: 505, title: "Laptop Motherboard, Screen & iPhone Repair Specialist", category: "Phone & Laptop Repairs", provider: "FixIt Lab Complex", location: "MOUAU, Umudike", price: "Free Diagnostics", rating: "4.7 ★ (19 reviews)", verified: true, description: "Same-day screen swap, battery replacement, SSD upgrade and Windows/Mac installation.", whatsapp: "2348056789012" },
     ];
 
@@ -204,21 +204,21 @@
       { id: 601, title: "Self-con Lodge at 82 Bus Stop (Steady Water & Fenced)", type: "Self-Contained", price: "₦180,000 / yr", location: "MOUAU, Umudike", area: "82 Bus Stop", verified: true, description: "Tiled self-contain with borehole water, individual prepaid meter and security gate.", whatsapp: "2348012345678" },
       { id: 602, title: "FEMALE ROOMMATE NEEDED — 2-Bedroom Flat at Ahiaeke", type: "Roommate Needed", price: "₦85,000 each (Rent Shared Equally)", location: "MOUAU, Umudike", area: "Ahiaeke Layout", verified: true, description: "Roommate needed for a clean 2-bedroom apartment around Umudike. Separate rooms, shared kitchen & sitting room.", whatsapp: "2348089012345" },
       { id: 603, title: "Executive Newly-Built Self-con with POP & Solar Lights", type: "Self-Contained", price: "₦250,000 / yr", location: "MOUAU, Umudike", area: "Ndoro Junction", verified: true, description: "Wardrobe, kitchen cabinet, 24/7 solar compound lighting and 5 mins Keke ride to Main Gate.", whatsapp: "2348092223334" },
-      { id: 604, title: "Male Roommate Needed — Up-School Gate Self-Con", type: "Roommate Needed", price: "₦60,000 split rent", location: "ABSU, Uturu", area: "Uturu Main Gate", verified: true, description: "Looking for a tidy 200L/300L student to share a spacious self-con with fan and reading table.", whatsapp: "2348045678901" },
+      { id: 604, title: "Male Roommate Needed — Up-School Gate Self-Con", type: "Roommate Needed", price: "₦60,000 split rent", location: "82 Bus Stop & Ndoro", area: "Uturu Main Gate", verified: true, description: "Looking for a tidy 200L/300L student to share a spacious self-con with fan and reading table.", whatsapp: "2348045678901" },
     ];
 
     const INITIAL_PEOPLE = [
       { id: 701, name: "Tobechi Okafor", school: "MOUAU, Umudike", dept: "Accounting • 400L", bio: "Final Year Senator, fintech enthusiast & student business mentor.", interests: ["Finance", "Entrepreneurship", "Football"], online: true, verified: true, whatsapp: "2348012345601" },
       { id: 702, name: "Chidinma Nwosu", school: "MOUAU, Umudike", dept: "Computer Science • 300L", bio: "GDSC Tech Lead building React apps & helping students break into tech.", interests: ["Programming", "UI/UX Design", "Tech Events"], online: true, verified: true, whatsapp: "2348023456702" },
       { id: 703, name: "Kelechi Emenike", school: "MOUAU, Umudike", dept: "Computer Engineering • 500L", bio: "Solar IoT builder, NUESA executive & Arsenal fan.", interests: ["Programming", "Football", "Hardware"], online: false, verified: true, whatsapp: "2348034567803" },
-      { id: 704, name: "Ebuka Madu", school: "ABSU, Uturu", dept: "Mass Communication • 300L", bio: "Campus blogger, podcast host & event MC across Abia campuses.", interests: ["Entertainment", "Blogging", "Photography"], online: true, verified: true, whatsapp: "2348045678904" },
+      { id: 704, name: "Ebuka Madu", school: "82 Bus Stop & Ndoro", dept: "Mass Communication • 300L", bio: "Campus blogger, podcast host & event MC across Abia campuses.", interests: ["Entertainment", "Blogging", "Photography"], online: true, verified: true, whatsapp: "2348045678904" },
       { id: 705, name: "Blessing Anyanwu", school: "MOUAU, Umudike", dept: "Agribusiness • 300L", bio: "Founder @GreenBasket — connecting student farmers to local markets.", interests: ["Entrepreneurship", "Agribusiness", "Fashion"], online: true, verified: true, whatsapp: "2348067890106" },
       { id: 706, name: "Victor Nnanna", school: "Umuahia & Surroundings", dept: "Creative Director", bio: "Videographer & brand designer working with student startups.", interests: ["Photography", "UI/UX Design", "Music"], online: true, verified: false, whatsapp: "2348056789005" },
     ];
 
     const INITIAL_COMMUNITIES = [
       { id: 801, name: "MOUAU Computer Science & Tech Community", category: "Technology", members: 840, admin: "Chidinma Nwosu", description: "Share coding resources, hackathon alerts, GitHub projects and remote internship referrals.", latestPost: "New React & Python study group starts this Saturday at COLPHYS Lab 2!" },
-      { id: 802, name: "Student Entrepreneurs & Hustlers (MOUAU + ABSU)", category: "Business", members: 1290, admin: "Tobechi Okafor", description: "Network with student vendors, learn branding, supplier sourcing and grant opportunities.", latestPost: "How to register your student business with CAC under ₦15k — thread posted." },
+      { id: 802, name: "Student Entrepreneurs & Hustlers (MOUAU & Umudike)", category: "Business", members: 1290, admin: "Tobechi Okafor", description: "Network with student vendors, learn branding, supplier sourcing and grant opportunities.", latestPost: "How to register your student business with CAC under ₦15k — thread posted." },
       { id: 803, name: "MOUAU Football Lovers & FPL League", category: "Sports", members: 960, admin: "Kelechi Emenike", description: "VC's Cup match updates, UEFA Champions League viewing centres and Fantasy Premier League.", latestPost: "COLENG vs COLNAS final predictions — who takes the trophy?" },
       { id: 804, name: "Freelancers & Remote Workers Around Umudike", category: "Career", members: 510, admin: "Victor Nnanna", description: "Upwork, Fiverr, graphic design, copywriting and foreign client payment tips.", latestPost: "Weekly portfolio review session tonight at 8 PM." },
     ];
@@ -226,7 +226,7 @@
     const INITIAL_BLOGGERS = [
       { id: 901, title: "How 5 MOUAU Students Built a Solar Charging Business From Their Hostel", category: "Business & Campus Gist", author: "Ebuka Madu", badge: "Verified Blogger", popular: true, reads: "3.4k reads", time: "4 min read", excerpt: "Power outages around 82 Bus Stop turned into a profitable student venture serving over 200 devices daily…" },
       { id: 902, title: "Complete Guide to Securing Your 300L SIWES Placement Before Everyone Else", category: "Career Development", author: "Chidinma Nwosu", badge: "Verified Blogger", popular: true, reads: "2.8k reads", time: "5 min read", excerpt: "From IITA and NRCRI to tech companies in Umuahia and Lagos—here are the exact application templates that work…" },
-      { id: 903, title: "Top 7 Budget-Friendly Food Spots Around MOUAU & ABSU Gates Ranked", category: "Lifestyle & Food", author: "Adaeze Uchendu", badge: "Popular Blogger", popular: true, reads: "4.1k reads", time: "3 min read", excerpt: "We tasted Jollof, Abacha and Ofe Owerri across Umudike Gate and Ndoro so your pocket doesn't suffer…" },
+      { id: 903, title: "Top 7 Budget-Friendly Food Spots Around MOUAU & Umudike Gates Ranked", category: "Lifestyle & Food", author: "Adaeze Uchendu", badge: "Popular Blogger", popular: true, reads: "4.1k reads", time: "3 min read", excerpt: "We tasted Jollof, Abacha and Ofe Owerri across Umudike Gate and Ndoro so your pocket doesn't suffer…" },
     ];
 
     const INITIAL_FOOD = [
@@ -242,9 +242,9 @@
     ];
 
     const ROADMAP_ITEMS = [
-      { phase: "Phase 1 • Live Now", status: "Available", color: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40", items: ["User Profiles & Location Filter (MOUAU/ABSU)", "Community Feed & Sponsored Ads", "Connect With People & Interest Filter", "Buy & Sell Marketplace (First 2 Listings FREE)", "Structured Jobs & Gigs + Anti-Scam Protection", "Events with 'Interested' & 'Going' RSVPs", "Report & Admin Moderation Dashboard"] },
+      { phase: "Phase 1 • Live Now", status: "Available", color: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40", items: ["User Profiles & Location Filter (MOUAU)", "Community Feed & Sponsored Ads", "Connect With People & Interest Filter", "Buy & Sell Marketplace (First 2 Listings FREE)", "Structured Jobs & Gigs + Anti-Scam Protection", "Events with 'Interested' & 'Going' RSVPs", "Report & Admin Moderation Dashboard"] },
       { phase: "Phase 2 • Rolling Out", status: "In Development", color: "bg-blue-500/20 text-blue-300 border-blue-500/40", items: ["Verified & Popular Bloggers Hub", "Communities & Discussion Groups", "Accommodation & Roommate Matcher", "Student Services Directory", "Scholarships & SIWES Opportunities Tracker", "Lost & Found + Food & Restaurants Directory"] },
-      { phase: "Phase 3 • Future", status: "Planned", color: "bg-amber-500/20 text-amber-300 border-amber-500/40", items: ["In-App Food Ordering & Campus Delivery", "QR Event Ticketing", "Verified Student Ride-Sharing (Umuahia ↔ MOUAU ↔ ABSU)", "Native Android & iOS Mobile App", "Automated Business Analytics Dashboard"] },
+      { phase: "Phase 3 • Future", status: "Planned", color: "bg-amber-500/20 text-amber-300 border-amber-500/40", items: ["In-App Food Ordering & Campus Delivery", "QR Event Ticketing", "Verified Student Ride-Sharing (Umuahia ↔ MOUAU ↔ Umudike)", "Native Android & iOS Mobile App", "Automated Business Analytics Dashboard"] },
     ];
 
     /* ============================================================================
@@ -265,21 +265,11 @@
 
     function Logo() {
       return (
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-green-600 font-black text-white shadow-lg shadow-blue-950/60">
-            MC
-          </div>
-          <div className="leading-tight">
-            <div className="flex items-center gap-1.5">
-              <p className="text-base font-extrabold tracking-tight text-white">MOUAU Connect</p>
-              <span className="rounded-md bg-amber-500/20 border border-amber-400/40 px-1.5 py-0.5 text-[10px] font-extrabold uppercase text-amber-300">
-                BETA
-              </span>
-            </div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-blue-300/80">
-              MOUAU • ABSU • UMUAHIA
-            </p>
-          </div>
+        <div className="leading-tight">
+          <p className="text-lg font-extrabold tracking-tight text-white">MOUAU Connect</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-amber-400">
+            MOUAU • UMUDIKE
+          </p>
         </div>
       );
     }
@@ -297,90 +287,423 @@
     }
 
     /* ============================================================================
-       3. AUTHENTICATION SCREEN
+       3. AUTHENTICATION SCREEN (SPLIT-SCREEN ONBOARDING & LOGIN)
        ============================================================================ */
+    const ACCOUNT_ROLES = [
+      { key: "Student",  label: "🎓 Student",  desc: "MOUAU Umudike" },
+      { key: "Business", label: "🛍️ Business", desc: "Vendor / Seller" },
+      { key: "Employer", label: "💼 Employer", desc: "Post Jobs" },
+      { key: "Blogger",  label: "✍️ Blogger",  desc: "Campus Media" },
+    ];
+
+    const SIGNUP_INTERESTS = ["Programming", "Entrepreneurship", "Football", "Scholarships", "Fashion", "Agribusiness", "UI/UX Design", "Photography"];
+
     function AuthScreen({ onAuth }) {
-      const [mode, setMode] = useState("signin");
-      const [form, setForm] = useState({ fullName: "", studentId: "", department: "", password: "" });
+      const [mode, setMode] = useState("signin"); // 'signin' | 'signup' | 'forgot'
+      const [role, setRole] = useState("Student");
+      const [showPassword, setShowPassword] = useState(false);
+      const [rememberMe, setRememberMe] = useState(true);
+      const [selectedInterests, setSelectedInterests] = useState(["Entrepreneurship", "Scholarships"]);
+      const [form, setForm] = useState({
+        fullName: "",
+        studentId: "",
+        phone: "",
+        department: "COLMAS (MOUAU)",
+        password: "",
+        agreedTerms: true,
+      });
       const [error, setError] = useState("");
+      const [resetSent, setResetSent] = useState(false);
       const isSignup = mode === "signup";
 
       const update = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
+      const toggleInterest = (tag) => {
+        setSelectedInterests((prev) =>
+          prev.includes(tag) ? prev.filter((x) => x !== tag) : [...prev, tag]
+        );
+      };
+
       const submit = (e) => {
         e.preventDefault();
-        if (!form.studentId.trim() || !form.password) return setError("Please enter your ID/Email and password.");
-        if (isSignup && (!form.fullName.trim() || !form.department)) return setError("Please fill in every field.");
-        onAuth({
-          name: isSignup ? form.fullName.trim() : "Tobechi Okafor",
+        setError("");
+
+        if (mode === "forgot") {
+          if (!form.studentId.trim()) return setError("Enter your Student ID, email or phone number to reset your password.");
+          setResetSent(true);
+          return;
+        }
+
+        if (!form.studentId.trim() || !form.password) {
+          return setError("Please enter your Student ID / Email / Phone and Password.");
+        }
+
+        if (isSignup) {
+          if (!form.fullName.trim()) return setError("Please enter your full name or business name.");
+          if (!form.department) return setError("Please select your campus or community location.");
+          if (form.password.length < 6) return setError("Password must be at least 6 characters.");
+          if (!form.agreedTerms) return setError("Please agree to the MOUAU Connect community safety rules.");
+        }
+
+        const userProfile = {
+          name: isSignup ? form.fullName.trim() : (form.studentId.includes("@") ? form.studentId.split("@")[0] : "Tobechi Okafor"),
           studentId: form.studentId.trim().toUpperCase(),
-          department: isSignup ? form.department : "COLMAS (MOUAU)",
+          department: form.department || "COLMAS (MOUAU)",
+          role,
+          interests: selectedInterests,
           verifiedStudent: true,
-        });
+          rememberMe,
+        };
+
+        try {
+          if (rememberMe) localStorage.setItem("mouau_connect_user", JSON.stringify(userProfile));
+        } catch (_) {}
+
+        onAuth(userProfile);
+      };
+
+      const quickDemoLogin = (demoUser) => {
+        try {
+          localStorage.setItem("mouau_connect_user", JSON.stringify(demoUser));
+        } catch (_) {}
+        onAuth(demoUser);
       };
 
       return (
-        <main className="flex min-h-screen flex-col items-center justify-center px-4 py-10">
-          <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,rgba(29,157,33,0.35),transparent_65%)]" />
-          <div className="pop-in relative w-full max-w-md rounded-3xl border border-blue-800/50 bg-slate-900/90 p-6 shadow-2xl backdrop-blur sm:p-8">
-            <div className="mb-5 flex justify-center"><Logo /></div>
-            <h1 className="text-center text-2xl font-extrabold text-white">
-              {isSignup ? "Join the Local Digital Ecosystem" : "Welcome to MOUAU Connect"}
-            </h1>
-            <p className="mt-1 text-center text-xs font-medium text-amber-400">
-              “Connecting People. Creating Opportunities. Building Communities.”
-            </p>
-            <p className="mt-1.5 text-center text-xs text-blue-200/70">
-              For students, young people & businesses around MOUAU, ABSU and surrounding communities.
-            </p>
+        <main className="relative flex min-h-screen items-center justify-center px-4 py-8 sm:py-12">
+          <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,rgba(29,157,33,0.38),transparent_65%)]" />
 
-            <div className="mt-5 grid grid-cols-2 rounded-xl bg-slate-950/90 p-1 border border-blue-900/50">
-              {[["signin", "Sign In"], ["signup", "Create Account"]].map(([key, label]) => (
-                <button key={key} type="button" onClick={() => { setMode(key); setError(""); }}
-                  className={`rounded-lg py-2.5 text-sm font-semibold transition ${
-                    mode === key ? "bg-blue-600 text-white shadow" : "text-slate-400 hover:text-amber-400"
-                  }`}>
-                  {label}
+          <div className="pop-in relative grid w-full max-w-5xl overflow-hidden rounded-3xl border border-blue-700/60 bg-slate-900/95 shadow-2xl backdrop-blur lg:grid-cols-12">
+            {/* LEFT BRAND SHOWCASE PANEL */}
+            <section className="flex flex-col justify-between border-b border-blue-800/60 bg-gradient-to-br from-[#072909] via-[#0d3f10] to-[#051a06] p-6 sm:p-8 lg:col-span-5 lg:border-b-0 lg:border-r">
+              <div>
+                <Logo />
+                <div className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-500/15 px-3 py-1 text-[11px] font-extrabold text-amber-300">
+                  🌟 MOUAU Campus Ecosystem • Umudike
+                </div>
+                <h1 className="mt-3 text-2xl font-black leading-tight text-white sm:text-3xl">
+                  Connecting People. Creating Opportunities. Building Communities.
+                </h1>
+                <p className="mt-2 text-xs leading-relaxed text-blue-100/80">
+                  The community-driven digital ecosystem where students, young people and businesses around MOUAU and surrounding communities find everything they need.
+                </p>
+
+                {/* 3 Core Pillars */}
+                <div className="mt-6 space-y-3">
+                  <div className="flex items-start gap-3 rounded-2xl border border-blue-800/50 bg-slate-950/50 p-3">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#1D9D21] text-base">🤝</span>
+                    <div>
+                      <p className="text-xs font-extrabold text-white">1. Connect With People Near You</p>
+                      <p className="text-[11px] text-blue-200/75">Discover students by college & interests, join communities and message directly.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 rounded-2xl border border-blue-800/50 bg-slate-950/50 p-3">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#1D9D21] text-base">💼</span>
+                    <div>
+                      <p className="text-xs font-extrabold text-white">2. Unlock Jobs & Scholarships</p>
+                      <p className="text-[11px] text-blue-200/75">Verified part-time student jobs, remote gigs, SIWES placements & grants.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 rounded-2xl border border-blue-800/50 bg-slate-950/50 p-3">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#1D9D21] text-base">🛒</span>
+                    <div>
+                      <p className="text-xs font-extrabold text-white">3. Promote Commerce (First 2 Listings FREE)</p>
+                      <p className="text-[11px] text-blue-200/75">Buy & sell gadgets, find roommates/lodges, offer skills or run sponsored ads.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Trust & Safety Footer inside Showcase */}
+              <div className="mt-6 rounded-2xl border border-blue-800/60 bg-slate-950/70 p-3.5 text-[11px] text-blue-200/80">
+                <p className="font-bold text-amber-400">🛡️ Protected by Day-One Moderation</p>
+                <p className="mt-0.5">
+                  Verified badges, anti-scam job protection, manual ad review and 1-click reporting keep our campus ecosystem safe.
+                </p>
+              </div>
+            </section>
+
+            {/* RIGHT AUTHENTICATION FORM PANEL */}
+            <section className="p-6 sm:p-8 lg:col-span-7">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h2 className="text-xl font-extrabold text-white sm:text-2xl">
+                    {mode === "signin" && "Sign in to your account"}
+                    {mode === "signup" && "Create your verified account"}
+                    {mode === "forgot" && "Reset your password"}
+                  </h2>
+                  <p className="text-xs text-blue-200/75">
+                    {mode === "signin" && "Enter your Student ID, phone or email to access MOUAU Connect."}
+                    {mode === "signup" && "Get 2 FREE Marketplace listings and full access to campus opportunities."}
+                    {mode === "forgot" && "We'll send a recovery code to your registered email or WhatsApp."}
+                  </p>
+                </div>
+              </div>
+
+              {/* Mode Switch Tabs */}
+              {mode !== "forgot" && (
+                <div className="mt-5 grid grid-cols-2 rounded-2xl border border-blue-800/60 bg-slate-950/90 p-1">
+                  {[["signin", "🔑 Sign In"], ["signup", "✨ Create Account"]].map(([key, label]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => { setMode(key); setError(""); }}
+                      className={`rounded-xl py-2.5 text-xs sm:text-sm font-extrabold transition ${
+                        mode === key
+                          ? "bg-[#1D9D21] text-white shadow-lg"
+                          : "text-blue-200/70 hover:text-amber-300"
+                      }`}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Quick 1-Click Demo Logins (For Fast Preview) */}
+              {mode === "signin" && (
+                <div className="mt-4 rounded-2xl border border-blue-800/50 bg-slate-950/60 p-3">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-amber-400">
+                    ⚡ Instant Demo Access (1-Click Sign In)
+                  </p>
+                  <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        quickDemoLogin({
+                          name: "Tobechi Okafor",
+                          studentId: "MOUAU/21/10482",
+                          department: "COLMAS (MOUAU)",
+                          role: "Student",
+                          verifiedStudent: true,
+                        })
+                      }
+                      className="flex items-center justify-between rounded-xl border border-blue-700/60 bg-blue-950/70 px-3 py-2 text-left text-xs transition hover:border-[#1D9D21] hover:bg-blue-900/60">
+                      <div>
+                        <p className="font-bold text-white">🎓 Tobechi Okafor</p>
+                        <p className="text-[10px] text-blue-200/80">MOUAU Student • COLMAS</p>
+                      </div>
+                      <span className="font-bold text-amber-400">Enter →</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        quickDemoLogin({
+                          name: "Chidinma Tech & Gadgets",
+                          studentId: "VENDOR/UMU/084",
+                          department: "MOUAU, Umudike",
+                          role: "Business",
+                          verifiedStudent: true,
+                        })
+                      }
+                      className="flex items-center justify-between rounded-xl border border-blue-700/60 bg-blue-950/70 px-3 py-2 text-left text-xs transition hover:border-[#1D9D21] hover:bg-blue-900/60">
+                      <div>
+                        <p className="font-bold text-white">🛍️ Chidinma Gadgets</p>
+                        <p className="text-[10px] text-blue-200/80">Verified Vendor • 2 Free Ads</p>
+                      </div>
+                      <span className="font-bold text-amber-400">Enter →</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Role Selection on Sign Up */}
+              {isSignup && (
+                <div className="mt-4">
+                  <span className="mb-1.5 block text-xs font-bold text-blue-200">I am joining as a:</span>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {ACCOUNT_ROLES.map((r) => (
+                      <button
+                        key={r.key}
+                        type="button"
+                        onClick={() => setRole(r.key)}
+                        className={`rounded-xl border p-2 text-left transition ${
+                          role === r.key
+                            ? "border-[#1D9D21] bg-[#1D9D21]/25 text-white ring-1 ring-[#1D9D21]"
+                            : "border-blue-800/60 bg-slate-950/60 text-blue-200/80 hover:border-blue-600"
+                        }`}>
+                        <p className="text-xs font-extrabold">{r.label}</p>
+                        <p className="text-[10px] text-blue-300/80">{r.desc}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Main Auth Form */}
+              <form onSubmit={submit} className="mt-4 space-y-3.5" noValidate>
+                {isSignup && (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <span className="mb-1 block text-xs font-semibold text-blue-200">
+                        {role === "Business" || role === "Employer" ? "Full Name / Business Name" : "Full Name"}
+                      </span>
+                      <input
+                        name="fullName"
+                        value={form.fullName}
+                        onChange={update}
+                        className={inputCls}
+                        placeholder="e.g. Tobechi Okafor"
+                      />
+                    </div>
+                    <div>
+                      <span className="mb-1 block text-xs font-semibold text-blue-200">WhatsApp Phone Number</span>
+                      <input
+                        name="phone"
+                        type="tel"
+                        value={form.phone}
+                        onChange={update}
+                        className={inputCls}
+                        placeholder="e.g. 08012345678"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className={isSignup ? "grid gap-3 sm:grid-cols-2" : ""}>
+                  <div>
+                    <span className="mb-1 block text-xs font-semibold text-blue-200">
+                      {role === "Student" ? "MOUAU Student ID or Email" : "Email Address or Phone Number"}
+                    </span>
+                    <input
+                      name="studentId"
+                      value={form.studentId}
+                      onChange={update}
+                      className={inputCls}
+                      placeholder="e.g. MOUAU/21/12345 or email@mouau.edu.ng"
+                    />
+                  </div>
+
+                  {isSignup && (
+                    <div>
+                      <span className="mb-1 block text-xs font-semibold text-blue-200">Campus / Community Location</span>
+                      <select name="department" value={form.department} onChange={update} className={inputCls}>
+                        {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
+                      </select>
+                    </div>
+                  )}
+                </div>
+
+                {mode !== "forgot" && (
+                  <div>
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="text-xs font-semibold text-blue-200">Password</span>
+                      {mode === "signin" && (
+                        <button
+                          type="button"
+                          onClick={() => { setMode("forgot"); setError(""); setResetSent(false); }}
+                          className="text-xs font-semibold text-amber-400 hover:underline">
+                          Forgot password?
+                        </button>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        value={form.password}
+                        onChange={update}
+                        className={`${inputCls} pr-16`}
+                        placeholder="•••••••• (min. 6 characters)"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((s) => !s)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg bg-blue-950/80 px-2 py-1 text-[11px] font-bold text-blue-200 hover:text-white">
+                        {showPassword ? "Hide" : "Show"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Interest Selection on Sign Up */}
+                {isSignup && (
+                  <div>
+                    <span className="mb-1.5 block text-xs font-semibold text-blue-200">
+                      Pick your interests (for People Near Me & Opportunities feed):
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {SIGNUP_INTERESTS.map((tag) => {
+                        const active = selectedInterests.includes(tag);
+                        return (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => toggleInterest(tag)}
+                            className={`rounded-full px-2.5 py-1 text-[11px] font-bold transition ${
+                              active
+                                ? "bg-[#1D9D21] text-white"
+                                : "border border-blue-800/60 bg-slate-950/70 text-blue-200/80 hover:border-blue-600"
+                            }`}>
+                            {active ? "✔ " : "+ "}#{tag}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Remember Me / Terms Checkboxes */}
+                {mode === "signin" && (
+                  <label className="flex items-center gap-2 text-xs text-blue-200/85 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="h-4 w-4 accent-[#1D9D21] rounded"
+                    />
+                    Keep me signed in on this browser
+                  </label>
+                )}
+
+                {isSignup && (
+                  <label className="flex items-start gap-2 text-xs text-blue-200/85 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="agreedTerms"
+                      checked={form.agreedTerms}
+                      onChange={(e) => setForm({ ...form, agreedTerms: e.target.checked })}
+                      className="mt-0.5 h-4 w-4 accent-[#1D9D21] rounded"
+                    />
+                    <span>
+                      I agree to the <strong>MOUAU Connect Community Rules</strong> (no job scams, no fake accommodation listings, respect user privacy).
+                    </span>
+                  </label>
+                )}
+
+                {error && (
+                  <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-300">
+                    ⚠️ {error}
+                  </p>
+                )}
+
+                {resetSent && mode === "forgot" && (
+                  <p className="rounded-xl border border-emerald-500/40 bg-emerald-500/15 px-3 py-2.5 text-xs font-semibold text-emerald-300">
+                    ✔ Recovery link sent! Check your registered email/WhatsApp or return to Sign In.
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  className="w-full rounded-xl bg-[#1D9D21] py-3.5 text-sm font-extrabold text-white shadow-lg shadow-green-950/60 transition hover:bg-[#24b829] active:scale-[.99]">
+                  {mode === "signin" && "Sign In to MOUAU Connect →"}
+                  {mode === "signup" && `Create Verified ${role} Account →`}
+                  {mode === "forgot" && "Send Password Recovery Link"}
                 </button>
-              ))}
-            </div>
 
-            <form onSubmit={submit} className="mt-5 space-y-3.5" noValidate>
-              {isSignup && (
-                <div>
-                  <span className="mb-1 block text-xs font-semibold text-blue-200">Full Name</span>
-                  <input name="fullName" value={form.fullName} onChange={update} className={inputCls} placeholder="e.g. Tobechi Okafor" />
-                </div>
-              )}
-              <div>
-                <span className="mb-1 block text-xs font-semibold text-blue-200">Student ID / Phone or Email</span>
-                <input name="studentId" value={form.studentId} onChange={update} className={inputCls} placeholder="e.g. MOUAU/21/12345 or email" />
-              </div>
-              {isSignup && (
-                <div>
-                  <span className="mb-1 block text-xs font-semibold text-blue-200">Campus / Community</span>
-                  <select name="department" value={form.department} onChange={update} className={inputCls}>
-                    <option value="">Select Campus or College</option>
-                    {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                </div>
-              )}
-              <div>
-                <span className="mb-1 block text-xs font-semibold text-blue-200">Password</span>
-                <input type="password" name="password" value={form.password} onChange={update} className={inputCls} placeholder="••••••••" />
-              </div>
+                {mode === "forgot" && (
+                  <button
+                    type="button"
+                    onClick={() => { setMode("signin"); setError(""); }}
+                    className="w-full text-center text-xs font-bold text-amber-400 hover:underline">
+                    ← Back to Sign In
+                  </button>
+                )}
+              </form>
 
-              {error && <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">{error}</p>}
-
-              <button type="submit"
-                className="w-full rounded-xl bg-green-600 py-3 text-sm font-bold text-white shadow-lg shadow-green-950/50 transition hover:bg-green-500">
-                {isSignup ? "Create Verified Account" : "Enter MOUAU Connect Beta →"}
-              </button>
-            </form>
-
-            <p className="mt-4 text-center text-[11px] text-blue-300/60">
-              Independent community platform connecting MOUAU, ABSU & surrounding areas.
-            </p>
+              <p className="mt-4 text-center text-[11px] text-blue-300/70">
+                Independent platform serving MOUAU & surrounding communities.
+              </p>
+            </section>
           </div>
         </main>
       );
@@ -398,10 +721,10 @@
 
       return (
         <header className="sticky top-0 z-50 border-b border-blue-800/60 bg-slate-950/95 backdrop-blur-md shadow-xl">
-          {/* Beta Welcome Strip */}
+          {/* Welcome Strip */}
           <div className="border-b border-blue-900/50 bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-950 px-4 py-1.5 text-center text-xs text-blue-200">
-            <span className="font-bold text-amber-400">Welcome to MOUAU Connect Beta:</span>{" "}
-            Connecting People • Creating Opportunities • Building Communities across MOUAU, ABSU & Umuahia.
+            <span className="font-bold text-amber-400">Welcome to MOUAU Connect:</span>{" "}
+            Connecting People • Creating Opportunities • Building Communities across MOUAU & Umudike.
             <button onClick={() => setActiveSection("roadmap")} className="ml-2 underline font-semibold text-amber-300 hover:text-white">
               View Roadmap & Suggest Features →
             </button>
@@ -758,7 +1081,7 @@
                     <span className="mb-1 block text-xs font-semibold text-blue-200">Target Campus</span>
                     <select value={location} onChange={(e) => setLocation(e.target.value)} className={inputCls}>
                       <option value="MOUAU, Umudike">MOUAU, Umudike</option>
-                      <option value="ABSU, Uturu">ABSU, Uturu</option>
+                      <option value="82 Bus Stop & Ndoro">82 Bus Stop & Ndoro</option>
                       <option value="Umuahia & Surroundings">Umuahia & Surroundings</option>
                     </select>
                   </div>
@@ -813,7 +1136,7 @@
       function SponsoredAdModal() {
         const [title, setTitle] = useState("");
         const [category, setCategory] = useState("Restaurant & Food");
-        const [target, setTarget] = useState("MOUAU, ABSU & Surrounding Areas");
+        const [target, setTarget] = useState("MOUAU, Umudike & Surrounding Areas");
         const [duration, setDuration] = useState("7 Days (₦5,000)");
         const [description, setDescription] = useState("");
         const [whatsapp, setWhatsapp] = useState("");
@@ -863,8 +1186,8 @@
                     <span className="mb-1 block text-xs font-semibold text-blue-200">Target Location</span>
                     <select value={target} onChange={(e) => setTarget(e.target.value)} className={inputCls}>
                       <option>MOUAU, Umudike</option>
-                      <option>ABSU, Uturu</option>
-                      <option>MOUAU, ABSU & Surrounding Areas</option>
+                      <option>82 Bus Stop & Ndoro</option>
+                      <option>MOUAU, Umudike & Surrounding Areas</option>
                     </select>
                   </div>
                   <div>
@@ -979,7 +1302,7 @@
         );
       }
 
-      if (!user) return <AuthScreen onAuth={(u) => { setUser(u); setToast(`Welcome to MOUAU Connect Beta, ${u.name.split(" ")[0]}!`); }} />;
+      if (!user) return <AuthScreen onAuth={(u) => { setUser(u); setToast(`Welcome to MOUAU Connect, ${u.name.split(" ")[0]}!`); }} />;
 
       return (
         <div className="min-h-screen">
@@ -1010,7 +1333,7 @@
                   <div className="flex flex-wrap items-center justify-between gap-6">
                     <div className="max-w-2xl">
                       <span className="inline-flex items-center gap-2 rounded-full bg-amber-500/20 border border-amber-400/40 px-3 py-1 text-xs font-extrabold text-amber-300">
-                        ⚡ Local Digital Ecosystem • MOUAU • ABSU • Umuahia
+                        ⚡ Local Digital Ecosystem • MOUAU • Umudike • Umuahia
                       </span>
                       <h1 className="mt-3 text-2xl font-black text-white sm:text-4xl">
                         Connecting People. Creating Opportunities. Building Communities.
@@ -1160,7 +1483,7 @@
                   <div>
                     <span className="text-xs font-bold uppercase text-amber-400">Social Discovery • People Near Me</span>
                     <h2 className="text-2xl font-extrabold text-white">🤝 Connect With Students & Young People</h2>
-                    <p className="text-xs text-blue-200/80">Discover people around MOUAU, ABSU & Umuahia by shared interests, follow profiles or send a message.</p>
+                    <p className="text-xs text-blue-200/80">Discover people around MOUAU, Umudike & Umuahia by shared interests, follow profiles or send a message.</p>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {["All", "Programming", "Football", "Entrepreneurship", "UI/UX Design", "Photography"].map((tag) => (
@@ -1650,7 +1973,7 @@
                 <div className="mb-5 rounded-2xl border border-blue-800/50 bg-blue-950/60 p-5">
                   <span className="text-xs font-bold uppercase text-amber-400">Daily Campus Dining</span>
                   <h2 className="text-2xl font-extrabold text-white">🍲 Food & Restaurants Directory</h2>
-                  <p className="text-xs text-blue-200/80">Explore menus, opening hours and direct WhatsApp contacts for restaurants and food vendors around MOUAU & ABSU.</p>
+                  <p className="text-xs text-blue-200/80">Explore menus, opening hours and direct WhatsApp contacts for restaurants and food vendors around MOUAU & Umudike.</p>
                 </div>
 
                 <div className="grid gap-5 md:grid-cols-3">
@@ -1724,10 +2047,10 @@
             {activeSection === "roadmap" && (
               <section className="space-y-6">
                 <div className="rounded-2xl border border-blue-800/50 bg-blue-950/60 p-5">
-                  <span className="text-xs font-bold uppercase text-amber-400">Actively Developed Beta Platform</span>
+                  <span className="text-xs font-bold uppercase text-amber-400">Actively Developed Campus Platform</span>
                   <h2 className="text-2xl font-extrabold text-white">🚀 What's New, Feature Roadmap & Suggestions</h2>
                   <p className="text-xs text-blue-200/80">
-                    Welcome to MOUAU Connect Beta. We're building a better community experience in stages based on real student feedback.
+                    Welcome to MOUAU Connect. We're building a better community experience in stages based on real student feedback.
                   </p>
                 </div>
 
@@ -1825,9 +2148,9 @@
 
           {/* Footer with Independent Platform Disclaimer */}
           <footer className="border-t border-blue-900/60 bg-slate-950/90 py-6 text-center text-xs text-blue-300/70">
-            <p className="font-bold text-white">MOUAU Connect Beta — “Connecting People. Creating Opportunities. Building Communities.”</p>
+            <p className="font-bold text-white">MOUAU Connect — “Connecting People. Creating Opportunities. Building Communities.”</p>
             <p className="mt-1">
-              Independent community-driven digital ecosystem serving students, young people & businesses around MOUAU, ABSU and surrounding communities.
+              Independent community-driven digital ecosystem serving students, young people & businesses around MOUAU, Umudike and surrounding communities.
             </p>
           </footer>
 
