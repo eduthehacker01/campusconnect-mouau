@@ -58,6 +58,17 @@
     .toast-in { animation: slideUp .25s ease-out; }
     @keyframes pop { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
     .pop-in { animation: pop .2s ease-out; }
+    @keyframes videoSlideIn {
+      0%   { opacity: 0; transform: translateX(48px) scale(1.06); }
+      100% { opacity: 1; transform: translateX(0) scale(1); }
+    }
+    @keyframes kenBurnsPan {
+      0%   { transform: scale(1) translate(0, 0); }
+      50%  { transform: scale(1.09) translate(-1.5%, -1%); }
+      100% { transform: scale(1.03) translate(1%, 0.5%); }
+    }
+    .video-slide-in { animation: videoSlideIn 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .ken-burns { animation: kenBurnsPan 14s ease-in-out infinite alternate; }
   </style>
 </head>
 <body class="bg-gradient-to-br from-[#051a06] via-[#0a360c] to-[#072909] text-slate-100 antialiased min-h-screen">
@@ -263,6 +274,150 @@
     const inputCls =
       "w-full rounded-xl bg-slate-950/80 border border-blue-800/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40 transition";
 
+    /* ---------------- MOUAU Admin Block Watermark + Slide-In Video Reel ---------------- */
+    const MOUAU_CAMPUS_SLIDES = [
+      {
+        title: "Michael Okpara University of Agriculture — Admin Block",
+        subtitle: "Senate & Administrative Complex • Umudike",
+        tag: "🏛️ MOUAU Admin Block",
+        image: "https://upload.wikimedia.org/wikipedia/en/1/11/University_Gate_of_Micheal_Okpara_University_of_Agriculture.jpg",
+        video: "https://assets.mixkit.co/videos/preview/mixkit-aerial-view-of-a-university-campus-41559-large.mp4",
+      },
+      {
+        title: "MOUAU Central Library & Academic Core",
+        subtitle: "Research, Innovation & Student Study Hub",
+        tag: "📚 Academic Excellence",
+        image: "https://upload.wikimedia.org/wikipedia/commons/5/56/Michael_Okpara_University_Library%2C_Imo_State_%28with_the_Library_annex_in_the_background.jpg",
+        video: "https://assets.mixkit.co/videos/preview/mixkit-students-walking-in-a-university-campus-4519-large.mp4",
+      },
+      {
+        title: "MOUAU Student Entrepreneurship & Campus Life",
+        subtitle: "Connecting Students, Vendors, Jobs & Lodges Across Umudike",
+        tag: "⚡ Campus Community",
+        image: "https://mouau.edu.ng/wp-content/uploads/2022/03/students-reg-400x225.jpg",
+        video: "https://assets.mixkit.co/videos/preview/mixkit-young-people-studying-together-outside-4527-large.mp4",
+      },
+    ];
+
+    function AdminBlockWatermark({ opacity = "opacity-[0.13]" }) {
+      return (
+        <div className={`pointer-events-none absolute inset-0 overflow-hidden select-none ${opacity}`} aria-hidden="true">
+          <img
+            src="https://upload.wikimedia.org/wikipedia/en/1/11/University_Gate_of_Micheal_Okpara_University_of_Agriculture.jpg"
+            alt=""
+            className="ken-burns h-full w-full object-cover object-center mix-blend-luminosity"
+          />
+          {/* Architectural Admin Block Silhouette & Official Crest Watermark SVG */}
+          <svg viewBox="0 0 1200 420" fill="none" xmlns="http://www.w3.org/2000/svg"
+               className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[115%] max-w-none text-white/30">
+            <rect x="80" y="210" width="1040" height="190" stroke="currentColor" strokeWidth="3" fill="currentColor" fillOpacity="0.08" />
+            <rect x="370" y="110" width="460" height="290" stroke="currentColor" strokeWidth="4" fill="currentColor" fillOpacity="0.12" />
+            <polygon points="340,110 600,25 860,110" stroke="currentColor" strokeWidth="4" fill="currentColor" fillOpacity="0.15" />
+            {/* Admin Block Pillars & Windows */}
+            {[420, 480, 540, 600, 660, 720, 780].map((x) => (
+              <line key={x} x1={x} y1="115" x2={x} y2="395" stroke="currentColor" strokeWidth="5" />
+            ))}
+            {[140, 200, 260, 880, 940, 1000].map((x) => (
+              <rect key={x} x={x} y="245" width="36" height="55" stroke="currentColor" strokeWidth="2.5" />
+            ))}
+            <text x="600" y="96" textAnchor="middle" fill="currentColor" fontSize="22" fontWeight="900" letterSpacing="6">
+              MOUAU ADMIN BLOCK • UMUDIKE
+            </text>
+          </svg>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#051a06] via-[#051a06]/65 to-transparent" />
+        </div>
+      );
+    }
+
+    function CampusSlideVideoPlayer({ compact = false }) {
+      const [slideIdx, setSlideIdx] = useState(0);
+      const [customWatermark, setCustomWatermark] = useState(null);
+
+      useEffect(() => {
+        const timer = setInterval(() => {
+          setSlideIdx((i) => (i + 1) % MOUAU_CAMPUS_SLIDES.length);
+        }, 6500);
+        return () => clearInterval(timer);
+      }, []);
+
+      const current = MOUAU_CAMPUS_SLIDES[slideIdx];
+      const bgImg = customWatermark || current.image;
+
+      const handleCustomImage = (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => setCustomWatermark(reader.result);
+        reader.readAsDataURL(file);
+      };
+
+      return (
+        <div className={`relative overflow-hidden rounded-2xl border border-blue-700/60 bg-[#051a06] shadow-2xl ${compact ? "h-48 sm:h-56" : "h-56 sm:h-64"}`}>
+          {/* Slide-In Motion Video + Admin Block Watermark Layer */}
+          <div key={slideIdx} className="video-slide-in relative h-full w-full">
+            <video
+              key={current.video}
+              src={current.video}
+              poster={bgImg}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="h-full w-full object-cover opacity-55"
+            />
+            {/* Persistent MOUAU Admin Block Watermark Overlay */}
+            <img
+              src={bgImg}
+              alt="Michael Okpara University of Agriculture Admin Block Watermark"
+              className="ken-burns pointer-events-none absolute inset-0 h-full w-full object-cover opacity-35 mix-blend-screen"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#051a06] via-[#051a06]/50 to-transparent" />
+          </div>
+
+          {/* Top Watermark Stamp & Slide Controls */}
+          <div className="absolute inset-x-3 top-3 flex items-center justify-between gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/55 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-amber-300 backdrop-blur-md">
+              <span className="h-2 w-2 rounded-full bg-[#1D9D21] animate-ping" />
+              {current.tag} • LIVE REEL
+            </span>
+            <label className="cursor-pointer rounded-full border border-white/20 bg-black/55 px-2.5 py-1 text-[10px] font-bold text-blue-200 backdrop-blur-md transition hover:border-amber-400 hover:text-white"
+                   title="Upload your own MOUAU Admin Block photo as watermark">
+              📷 Custom Admin Block Photo
+              <input type="file" accept="image/*" onChange={handleCustomImage} className="sr-only" />
+            </label>
+          </div>
+
+          {/* Center Watermark Seal */}
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <p className="select-none text-center text-xl sm:text-2xl font-black uppercase tracking-[0.35em] text-white/15">
+              MOUAU ADMIN BLOCK • UMUDIKE
+            </p>
+          </div>
+
+          {/* Bottom Caption & Slide Indicators */}
+          <div className="absolute inset-x-4 bottom-3 flex items-end justify-between gap-3">
+            <div>
+              <p className="text-xs sm:text-sm font-extrabold text-white drop-shadow">{current.title}</p>
+              <p className="text-[11px] text-blue-200/90">{current.subtitle}</p>
+            </div>
+            <div className="flex items-center gap-1.5">
+              {MOUAU_CAMPUS_SLIDES.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setSlideIdx(i)}
+                  aria-label={`Slide ${i + 1}`}
+                  className={`h-2 rounded-full transition-all ${
+                    i === slideIdx ? "w-6 bg-amber-400" : "w-2 bg-white/40 hover:bg-white/75"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     function Logo() {
       return (
         <div className="leading-tight">
@@ -370,15 +525,18 @@
       };
 
       return (
-        <main className="relative flex min-h-screen items-center justify-center px-4 py-8 sm:py-12">
+        <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 sm:py-12">
+          {/* Full-screen MOUAU Admin Block Watermark Background */}
+          <AdminBlockWatermark opacity="opacity-[0.16]" />
           <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,rgba(29,157,33,0.38),transparent_65%)]" />
 
-          <div className="pop-in relative grid w-full max-w-5xl overflow-hidden rounded-3xl border border-blue-700/60 bg-slate-900/95 shadow-2xl backdrop-blur lg:grid-cols-12">
-            {/* LEFT BRAND SHOWCASE PANEL */}
-            <section className="flex flex-col justify-between border-b border-blue-800/60 bg-gradient-to-br from-[#072909] via-[#0d3f10] to-[#051a06] p-6 sm:p-8 lg:col-span-5 lg:border-b-0 lg:border-r">
-              <div>
+          <div className="pop-in relative grid w-full max-w-5xl overflow-hidden rounded-3xl border border-blue-700/60 bg-slate-900/90 shadow-2xl backdrop-blur-md lg:grid-cols-12">
+            {/* LEFT BRAND SHOWCASE PANEL WITH SLIDE-IN VIDEO & ADMIN BLOCK WATERMARK */}
+            <section className="relative flex flex-col justify-between overflow-hidden border-b border-blue-800/60 bg-gradient-to-br from-[#072909]/95 via-[#0d3f10]/95 to-[#051a06]/95 p-6 sm:p-8 lg:col-span-5 lg:border-b-0 lg:border-r">
+              <AdminBlockWatermark opacity="opacity-[0.18]" />
+              <div className="relative z-10">
                 <Logo />
-                <div className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-500/15 px-3 py-1 text-[11px] font-extrabold text-amber-300">
+                <div className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-500/15 px-3 py-1 text-[11px] font-extrabold text-amber-300">
                   🌟 MOUAU Campus Ecosystem • Umudike
                 </div>
                 <h1 className="mt-3 text-2xl font-black leading-tight text-white sm:text-3xl">
@@ -387,6 +545,11 @@
                 <p className="mt-2 text-xs leading-relaxed text-blue-100/80">
                   The community-driven digital ecosystem where students, young people and businesses around MOUAU and surrounding communities find everything they need.
                 </p>
+
+                {/* Slide-In Campus Video Reel with MOUAU Admin Block Watermark */}
+                <div className="mt-4">
+                  <CampusSlideVideoPlayer compact />
+                </div>
 
                 {/* 3 Core Pillars */}
                 <div className="mt-6 space-y-3">
@@ -1328,18 +1491,20 @@
                ==================================================================== */}
             {activeSection === "home" && (
               <>
-                {/* Hero Banner */}
-                <section className="rounded-3xl border border-blue-700/50 bg-gradient-to-r from-blue-950 via-blue-900/80 to-slate-900 p-6 shadow-2xl">
-                  <div className="flex flex-wrap items-center justify-between gap-6">
-                    <div className="max-w-2xl">
+                {/* Hero Landing Banner with Slide-In Video & MOUAU Admin Block Watermark */}
+                <section className="relative overflow-hidden rounded-3xl border border-blue-700/60 bg-gradient-to-r from-blue-950/95 via-blue-900/85 to-slate-900/95 p-6 shadow-2xl">
+                  <AdminBlockWatermark opacity="opacity-[0.18]" />
+
+                  <div className="relative z-10 grid items-center gap-6 lg:grid-cols-12">
+                    <div className="lg:col-span-7">
                       <span className="inline-flex items-center gap-2 rounded-full bg-amber-500/20 border border-amber-400/40 px-3 py-1 text-xs font-extrabold text-amber-300">
                         ⚡ Local Digital Ecosystem • MOUAU • Umudike • Umuahia
                       </span>
                       <h1 className="mt-3 text-2xl font-black text-white sm:text-4xl">
                         Connecting People. Creating Opportunities. Building Communities.
                       </h1>
-                      <p className="mt-2 text-sm text-blue-200/85">
-                        Buy & sell in the Marketplace, find part-time student jobs, RSVP to campus events, connect with people near you, or discover verified accommodation and scholarships.
+                      <p className="mt-2 text-sm text-blue-100/90">
+                        Buy & sell in the Marketplace, find part-time student jobs, RSVP to campus events, connect with people near you, or discover verified accommodation and scholarships across Michael Okpara University of Agriculture, Umudike.
                       </p>
                       <div className="mt-4 flex flex-wrap gap-2.5">
                         <button onClick={() => setActiveSection("marketplace")} className="rounded-xl bg-green-600 px-4 py-2.5 text-xs font-extrabold text-white shadow hover:bg-green-500">
@@ -1348,29 +1513,34 @@
                         <button onClick={() => setActiveSection("jobs")} className="rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-extrabold text-white shadow hover:bg-blue-500">
                           💼 Browse Jobs & Gigs
                         </button>
-                        <button onClick={() => setActiveSection("connect")} className="rounded-xl border border-blue-400/40 bg-blue-950/60 px-4 py-2.5 text-xs font-extrabold text-blue-200 hover:bg-blue-900">
+                        <button onClick={() => setActiveSection("connect")} className="rounded-xl border border-blue-400/40 bg-blue-950/70 px-4 py-2.5 text-xs font-extrabold text-blue-200 hover:bg-blue-900">
                           🤝 People Near Me
                         </button>
                       </div>
+
+                      <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+                        <div className="rounded-2xl bg-slate-950/75 border border-blue-800/50 p-3 backdrop-blur">
+                          <p className="text-lg font-black text-blue-400">3,480+</p>
+                          <p className="text-[10px] font-semibold uppercase text-blue-200/80">Verified Users</p>
+                        </div>
+                        <div className="rounded-2xl bg-slate-950/75 border border-blue-800/50 p-3 backdrop-blur">
+                          <p className="text-lg font-black text-amber-400">{marketplace.length + jobs.length}</p>
+                          <p className="text-[10px] font-semibold uppercase text-blue-200/80">Products & Jobs</p>
+                        </div>
+                        <div className="rounded-2xl bg-slate-950/75 border border-blue-800/50 p-3 backdrop-blur">
+                          <p className="text-lg font-black text-emerald-400">{events.length}</p>
+                          <p className="text-[10px] font-semibold uppercase text-blue-200/80">Upcoming Events</p>
+                        </div>
+                        <div className="rounded-2xl bg-slate-950/75 border border-blue-800/50 p-3 backdrop-blur">
+                          <p className="text-lg font-black text-purple-300">{communities.length}</p>
+                          <p className="text-[10px] font-semibold uppercase text-blue-200/80">Communities</p>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-2">
-                      <div className="rounded-2xl bg-slate-950/70 border border-blue-800/50 p-3.5">
-                        <p className="text-xl font-black text-blue-400">3,480+</p>
-                        <p className="text-[11px] text-blue-200/75">Verified Users</p>
-                      </div>
-                      <div className="rounded-2xl bg-slate-950/70 border border-blue-800/50 p-3.5">
-                        <p className="text-xl font-black text-amber-400">{marketplace.length + jobs.length}</p>
-                        <p className="text-[11px] text-blue-200/75">Active Products & Jobs</p>
-                      </div>
-                      <div className="rounded-2xl bg-slate-950/70 border border-blue-800/50 p-3.5">
-                        <p className="text-xl font-black text-emerald-400">{events.length}</p>
-                        <p className="text-[11px] text-blue-200/75">Upcoming Events</p>
-                      </div>
-                      <div className="rounded-2xl bg-slate-950/70 border border-blue-800/50 p-3.5">
-                        <p className="text-xl font-black text-purple-300">{communities.length}</p>
-                        <p className="text-[11px] text-blue-200/75">Active Communities</p>
-                      </div>
+                    {/* Right Column: Slide-In Campus Video Reel with MOUAU Admin Block Watermark */}
+                    <div className="lg:col-span-5">
+                      <CampusSlideVideoPlayer />
                     </div>
                   </div>
                 </section>
