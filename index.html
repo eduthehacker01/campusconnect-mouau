@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CampusConnect MOUAU</title>
+  <title>MOUAU Connect Beta — Connecting People. Creating Opportunities. Building Communities.</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
@@ -27,70 +27,192 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useMemo, useCallback } = React;
+    const { useState, useEffect, useMemo } = React;
 
-    /* ---------------- Config & mock data ---------------- */
-    const CATEGORIES = {
-      hostel: { label: "Hostel", icon: "🏠", gradient: "from-blue-800 via-blue-900 to-slate-950" },
-      vendor: { label: "Vendor", icon: "🛍️", gradient: "from-amber-600 via-amber-800 to-slate-950" },
-      event:  { label: "Event",  icon: "🎉", gradient: "from-emerald-700 via-teal-900 to-slate-950" },
-    };
-
-    const NAV_SECTIONS = [
-      { key: "feed",      label: "Campus Feed",       icon: "📡", badge: "Live" },
-      { key: "colleges",  label: "Colleges & Depts",  icon: "🏛️" },
-      { key: "students",  label: "Student Directory", icon: "🎓", count: "3,480" },
-      { key: "lodges",    label: "Lodges & Housing",  icon: "🏠" },
-      { key: "vendors",   label: "Campus Vendors",    icon: "🛍️" },
-      { key: "events",    label: "SUG & Events",      icon: "🎉" },
+    /* ============================================================================
+       1. NAVIGATION & PLATFORM DATA (MOUAU + ABSU + SURROUNDING COMMUNITIES)
+       ============================================================================ */
+    const MAIN_NAV = [
+      { key: "home",          label: "Home",          icon: "🏠", badge: "Feed" },
+      { key: "connect",       label: "Connect",       icon: "🤝", count: "3.4k" },
+      { key: "marketplace",   label: "Marketplace",   icon: "🛒", badge: "2 Free" },
+      { key: "jobs",          label: "Jobs & Gigs",   icon: "💼" },
+      { key: "events",        label: "Events",        icon: "🎉" },
+      { key: "opportunities", label: "Opportunities", icon: "🎓" },
+      { key: "services",      label: "Services",      icon: "🛠️" },
+      { key: "accommodation", label: "Accommodation", icon: "🏘️" },
+      { key: "communities",   label: "Communities",   icon: "💬" },
+      { key: "bloggers",      label: "Bloggers",      icon: "✍️" },
+      { key: "food",          label: "Food & Rest.",  icon: "🍲" },
+      { key: "lostfound",     label: "Lost & Found",  icon: "🔍" },
+      { key: "roadmap",       label: "Roadmap & Beta",icon: "🚀" },
     ];
 
-    const TABS = [
-      { key: "all",    label: "All Listings" },
-      { key: "hostel", label: "Hostels & Lodges" },
-      { key: "vendor", label: "Student Vendors" },
-      { key: "event",  label: "Campus Events" },
+    const LOCATIONS = ["All Locations", "MOUAU, Umudike", "ABSU, Uturu", "Umuahia & Surroundings"];
+    const DEPARTMENTS = ["COLPHYS (MOUAU)", "COLNAS (MOUAU)", "COLENG (MOUAU)", "COLMAS (MOUAU)", "COLAMRUD (MOUAU)", "COLVET (MOUAU)", "ABSU Uturu", "Umuahia Community"];
+
+    const SPONSORED_ADS = [
+      { id: "ad-1", title: "Crunchies & Mama Nkechi Combo Week — 20% Off Student ID", category: "Food & Restaurant", target: "MOUAU, Umudike", duration: "14 Days", reach: "4,820 views", description: "Flash your MOUAU or ABSU ID card for free delivery around Main Gate, 82 Bus Stop & Ahiaeke.", whatsapp: "2348023456789", sponsor: "Mama Nkechi Kitchen", verified: true },
+      { id: "ad-2", title: "King's Executive Barbershop & Spa — Freshers Cut Promo", category: "Beauty & Grooming", target: "MOUAU & Umuahia", duration: "7 Days", reach: "2,910 views", description: "Clean fade, dreadlock retwist & facial treatment at ₦1,500. Generator always on + free PS5 while waiting!", whatsapp: "2348033344455", sponsor: "King's Cuts Umudike", verified: true },
+      { id: "ad-3", title: "TechHub Fibre Wi-Fi & Co-Working Space", category: "Tech & Workspace", target: "MOUAU, ABSU & Umuahia", duration: "30 Days", reach: "8,140 views", description: "24/7 solar power, Starlink internet & quiet coding desks for remote workers and freelancers.", whatsapp: "2348055566677", sponsor: "Umudike TechHub", verified: true },
     ];
 
-    const DEPARTMENTS = ["COLPHYS", "COLNAS", "COLENG", "COLAMRUD", "COLANIM", "COLCRAN", "COLFAST", "COLMAS", "COLVET", "COLED"];
-
-    const COLLEGES_DATA = [
-      { code: "COLPHYS",  name: "College of Physical & Applied Sciences", depts: ["Computer Science", "Physics", "Mathematics", "Chemistry", "Statistics"], dean: "Prof. E. O. Chukwu", students: 620 },
-      { code: "COLNAS",   name: "College of Natural Sciences", depts: ["Microbiology", "Biochemistry", "Plant Science & Biotech", "Zoology"], dean: "Prof. N. A. Ibe", students: 540 },
-      { code: "COLENG",   name: "College of Engineering & Engineering Tech", depts: ["Civil Engineering", "Electrical/Electronics", "Mechanical", "Computer Engineering", "Agric & Bioresources"], dean: "Engr. Prof. U. Kalu", students: 710 },
-      { code: "COLMAS",   name: "College of Management Sciences", depts: ["Accounting", "Banking & Finance", "Business Administration", "Marketing", "Entrepreneurial Studies"], dean: "Prof. C. Nwachukwu", students: 590 },
-      { code: "COLAMRUD", name: "College of Agribusiness & Rural Development", depts: ["Agribusiness", "Agricultural Economics", "Rural Sociology & Extension"], dean: "Prof. I. N. Okoye", students: 380 },
-      { code: "COLVET",   name: "College of Veterinary Medicine", depts: ["Veterinary Anatomy", "Veterinary Surgery", "Vet Public Health", "Vet Pathology"], dean: "Prof. D. O. Eze", students: 290 },
+    const CAMPUS_NEWS = [
+      { id: 1, title: "2025/2026 Rain Semester Lecture Timetable & Portal Registration Deadline", type: "Official Announcement", campus: "MOUAU, Umudike", date: "Today • 9:30 AM", official: true, summary: "All returning students are advised to complete course registration via the portal before Friday." },
+      { id: 2, title: "SUG Inter-College Sports Festival & VC's Cup Kickoff Schedule", type: "Campus Update", campus: "MOUAU, Umudike", date: "Yesterday", official: true, summary: "Opening ceremony begins 3:00 PM at the Main Stadium. COLENG vs COLNAS." },
+      { id: 3, title: "ABSU & MOUAU Joint Tech Innovation Hackathon Announced", type: "Community News", campus: "ABSU, Uturu", date: "2 days ago", official: false, summary: "₦500,000 prize pool for student teams building local solutions in agriculture, fintech and education." },
     ];
 
-    const STUDENTS_DATA = [
-      { id: 1, name: "Tobechi Okafor", regNo: "MOUAU/21/10482", college: "COLMAS", dept: "Accounting", level: "400L", role: "Final Year Senator", skills: ["Financial Modeling", "Tax Advisory", "SUG Parliament"], whatsapp: "2348012345601", online: true },
-      { id: 2, name: "Chidinma Nwosu", regNo: "MOUAU/22/18390", college: "COLPHYS", dept: "Computer Science", level: "300L", role: "GDSC Tech Lead", skills: ["React & Node.js", "UI/UX Design", "Hackathons"], whatsapp: "2348023456702", online: true },
-      { id: 3, name: "Kelechi Emenike", regNo: "MOUAU/20/09214", college: "COLENG", dept: "Computer Engineering", level: "500L", role: "NUESA President", skills: ["Embedded Systems", "Solar Automation", "CAD"], whatsapp: "2348034567803", online: false },
-      { id: 4, name: "Adaeze Uchendu", regNo: "MOUAU/23/22910", college: "COLNAS", dept: "Microbiology", level: "200L", role: "Class Rep", skills: ["Lab Research", "Academic Tutorials", "Event Host"], whatsapp: "2348045678904", online: true },
-      { id: 5, name: "Somtochukwu Igwe", regNo: "MOUAU/21/14002", college: "COLVET", dept: "Veterinary Medicine", level: "400L", role: "AVMS Welfare Dir.", skills: ["Pet Care", "Poultry Consult", "First Aid"], whatsapp: "2348056789005", online: true },
-      { id: 6, name: "Blessing Anyanwu", regNo: "MOUAU/22/17543", college: "COLAMRUD", dept: "Agribusiness", level: "300L", role: "Agro-Preneur", skills: ["Palm Oil Export", "Farm Supply", "Branding"], whatsapp: "2348067890106", online: false },
+    const INITIAL_MARKETPLACE = [
+      { id: 101, name: "OX 18-Inch Rechargeable Standing Fan + 2 Batteries", category: "Electronics", condition: "Used", price: "₦32,000", location: "MOUAU, Umudike", seller: "Kelechi E. (500L COLENG)", verified: true, description: "Graduating student clearance! Holds charge for 7 hours on low speed. Receipt available.", whatsapp: "2348011122201" },
+      { id: 102, name: "6x4 Mouka Foam Student Mattress (Clean with Waterproof Cover)", category: "Furniture", condition: "Used", price: "₦28,000", location: "MOUAU, Umudike", seller: "Chidinma N.", verified: true, description: "Used for only 1 session at 82 Bus Stop lodge. Very neat, no stains.", whatsapp: "2348011122202" },
+      { id: 103, name: "HP EliteBook 840 G5 — Core i5, 16GB RAM, 256GB SSD", category: "Electronics", condition: "Used", price: "₦245,000", location: "Umuahia & Surroundings", seller: "Apex Gadgets Hub", verified: true, description: "UK used clean laptop with backlit keyboard, 5+ hrs battery and free laptop bag.", whatsapp: "2348011122203" },
+      { id: 104, name: "2-Burner Table Gas Cooker + 6kg Cylinder & Hose", category: "Home Appliances", condition: "Used", price: "₦24,500", location: "MOUAU, Umudike", seller: "Tobechi O.", verified: true, description: "Complete cooking set ready for a fresher moving into a self-con.", whatsapp: "2348011122204" },
+      { id: 105, name: "Engineering & Basic Sciences Past Questions Compendium (100L–300L)", category: "Books", condition: "New", price: "₦3,500", location: "MOUAU, Umudike", seller: "Academic Press Club", verified: true, description: "Solved MTH, PHY, CHM & GST past questions with step-by-step workings.", whatsapp: "2348011122205" },
+      { id: 106, name: "Unisex Retro Oversized Streetwear Tees & Cargo Pants", category: "Fashion", condition: "New", price: "₦8,500", location: "ABSU, Uturu", seller: "DripPlug Uturu", verified: false, description: "Heavyweight cotton tees available in S, M, L, XL. Delivery to MOUAU & ABSU.", whatsapp: "2348011122206" },
     ];
 
-    const INITIAL_LISTINGS = [
-      { id: 1, category: "event",  title: "🏆 SUG Award & Gala Night 2026", price: "₦5,000 (Reg) / ₦15k (VIP)", location: "Convocation Arena", description: "The biggest night in MOUAU! Red carpet, student awards, live performances, comedy & after-party.", whatsapp: "2348011122233", image: null, isNew: true },
-      { id: 2, category: "hostel", title: "Self-con Lodge at 82 Bus Stop", price: "₦180,000/yr", location: "82 Bus Stop, Umudike", description: "Tiled self-contain with steady water, prepaid meter and fenced compound.", whatsapp: "2348012345678", image: null },
-      { id: 3, category: "vendor", title: "Umudike Gate Food Vendor – Mama Nkechi's Kitchen", price: "₦1,500/plate", location: "Main Gate", description: "Jollof, ofe owerri, abacha & fresh fish pepper soup daily.", whatsapp: "2348023456789", image: null },
-      { id: 4, category: "event",  title: "COLPHYS Freshers' Night & Mr/Miss COLPHYS", price: "₦2,000", location: "Main Auditorium", description: "Music, comedy, pageantry and awards for the new set. Dress code: Owambe.", whatsapp: "2348034567890", image: null },
-      { id: 5, category: "hostel", title: "Shared Room – Ikwuano Lodge", price: "₦95,000/yr", location: "Ndoro Junction", description: "2 per room, kitchen space, 5 mins trek to school.", whatsapp: "2348045678901", image: null },
-      { id: 6, category: "vendor", title: "Laptop & Phone Repairs", price: "From ₦3,000", location: "Library Complex", description: "Screen replacement, OS installs and charging port fixes.", whatsapp: "2348056789012", image: null },
-      { id: 7, category: "event",  title: "VC's Cup Inter-College Football Final", price: "Free", location: "MOUAU Main Stadium", description: "COLENG vs COLNAS live at the stadium! Halftime music, jersey giveaways and refreshments.", whatsapp: "2348067890123", image: null },
-      { id: 8, category: "vendor", title: "Campus Printing, Binding & Past Questions", price: "₦50/page", location: "COLNAS Building", description: "Project binding, past questions pack (100L–500L) and coloured prints.", whatsapp: "2348078901234", image: null },
-      { id: 9, category: "hostel", title: "Female Hostel Space – Okwuta", price: "₦120,000/yr", location: "Okwuta, Umudike", description: "Secure female-only lodge with 24/7 security and borehole.", whatsapp: "2348089012345", image: null },
-      { id: 10, category: "event", title: "MOUAU Rag Day & Carnival Parade", price: "₦1,000 (Kit)", location: "Starts at SUB Roundabout", description: "Costumes, brass band, and charity outreach across Umuahia & Umudike.", whatsapp: "2348091112223", image: null },
-      { id: 11, category: "hostel", title: "Executive Newly-Built Self-con – Ahiaeke", price: "₦250,000/yr", location: "Ahiaeke Layout", description: "POP ceiling, wardrobe, kitchen cabinet, solar security lights and steady borehole water.", whatsapp: "2348092223334", image: null },
-      { id: 12, category: "vendor", title: "Keke Campus Shuttle & Night Drops", price: "₦200 – ₦1,500", location: "Admin Block / Gate", description: "Fast drop to 82 Bus Stop, Ndoro, Ahiaeke or Umuahia town. Call for night pickups.", whatsapp: "2348093334445", image: null },
-      { id: 13, category: "vendor", title: "Thrift Plug, Lab Coats & Engineering Coveralls", price: "From ₦4,500", location: "SUB Shopping Complex", description: "Clean grade-A thrift tops, white lab coats, boots and green khaki coveralls.", whatsapp: "2348094445556", image: null },
-      { id: 14, category: "event", title: "FYB Dinner & Final Year Jean Carnival", price: "₦7,000", location: "Villa Roy Hotel, Umuahia", description: "Sign-out week celebration, awards, DJ battle and dinner for graduating lions & lionesses.", whatsapp: "2348095556667", image: null },
-      { id: 15, category: "vendor", title: "24/7 Phone & Laptop Solar Charging Hub", price: "₦100 / device", location: "Behind Nelson Mandela Hostel", description: "Never run out of battery during exams. Fast-charge sockets and safe locker slots.", whatsapp: "2348096667778", image: null },
+    const INITIAL_JOBS = [
+      {
+        id: 201,
+        title: "SALES ATTENDANT NEEDED",
+        type: "Part-time",
+        employer: " Umudike Choice Retail Store",
+        verified: true,
+        location: "MOUAU, Umudike",
+        hours: "To be discussed (Flexible shifts for students)",
+        salary: "To be discussed with employer",
+        deadline: "30 Nov 2026",
+        description: "A retail shop around MOUAU is currently looking for a responsible and hardworking sales attendant.",
+        requirements: [
+          "Good communication skills",
+          "Ability to attend to customers",
+          "Basic numerical and record-keeping skills",
+          "Honesty and punctuality",
+          "Previous experience is an advantage but not compulsory",
+        ],
+        whatsapp: "2348022233301",
+        featured: true,
+      },
+      {
+        id: 202,
+        title: "Frontend React & Tailwind Developer (Contract)",
+        type: "Remote",
+        employer: "Abia Tech Labs",
+        verified: true,
+        location: "Umuahia & Surroundings",
+        hours: "15–20 hrs / week (Remote)",
+        salary: "₦120,000 / month",
+        deadline: "15 Dec 2026",
+        description: "Build responsive web dashboards for local SMEs. Ideal for computer science or engineering students.",
+        requirements: ["React.js & Tailwind CSS proficiency", "GitHub portfolio", "Good internet connection"],
+        whatsapp: "2348022233302",
+        featured: false,
+      },
+      {
+        id: 203,
+        title: "Event Photographer & Reels Editor Needed for Department Dinner",
+        type: "Gigs & Freelance",
+        employer: "COLMAS Dinner Committee",
+        verified: true,
+        location: "MOUAU, Umudike",
+        hours: "1 Evening (5 PM – 11 PM)",
+        salary: "₦45,000 flat gig pay",
+        deadline: "25 Nov 2026",
+        description: "Cover red carpet photos and deliver two 60-second Instagram/TikTok highlight reels within 48 hours.",
+        requirements: ["DSLR/Mirrorless camera + lighting", "CapCut or Premiere Pro editing samples"],
+        whatsapp: "2348022233303",
+        featured: false,
+      },
+      {
+        id: 204,
+        title: "Graduate / Full-Time Bakery Supervisor & Cashier",
+        type: "Full-time",
+        employer: "Golden Crust Bakery Umuahia",
+        verified: true,
+        location: "Umuahia & Surroundings",
+        hours: "Mon–Sat (8 AM – 5 PM)",
+        salary: "₦85,000 / month",
+        deadline: "10 Dec 2026",
+        description: "Supervise daily bread & pastry sales, inventory reconciliation and POS operations.",
+        requirements: ["OND/HND/B.Sc or awaiting NYSC", "Strong bookkeeping and customer service"],
+        whatsapp: "2348022233304",
+        featured: false,
+      },
     ];
 
-    /* ---------------- Helpers ---------------- */
+    const INITIAL_EVENTS = [
+      { id: 301, title: "🏆 SUG Award & Gala Night 2026", category: "Social & Awards", date: "Fri, 27 Nov 2026 • 6:00 PM", venue: "Convocation Arena, MOUAU", location: "MOUAU, Umudike", organiser: "MOUAU SUG Executive Council", fee: "₦5,000 (Reg) / ₦15k (VIP)", interested: 342, going: 198, description: "The biggest night in MOUAU! Red carpet, student awards, live performances, comedy & after-party.", whatsapp: "2348011122233" },
+      { id: 302, title: "MOUAU & ABSU Tech Founders Summit 2026", category: "Tech Conference", date: "Sat, 05 Dec 2026 • 10:00 AM", venue: "Main Auditorium, MOUAU", location: "MOUAU, Umudike", organiser: "GDSC & Abia Tech Community", fee: "Free (RSVP Required)", interested: 215, going: 164, description: "Workshops on AI, Web3, remote tech jobs, and startup pitch competition with ₦500k seed grant.", whatsapp: "2348034567890" },
+      { id: 303, title: "COLPHYS Freshers' Night & Cultural Owambe", category: "Departmental Event", date: "Fri, 04 Dec 2026 • 5:00 PM", venue: "COLPHYS Lecture Theatre", location: "MOUAU, Umudike", organiser: "COLPHYS Social Director", fee: "₦2,000", interested: 178, going: 112, description: "Music, comedy, Mr & Miss COLPHYS pageantry and awards for the new 100L set.", whatsapp: "2348034567891" },
+      { id: 304, title: "Campus Worship & Night of Sound", category: "Church Programme", date: "Sun, 29 Nov 2026 • 4:00 PM", venue: "Chapel Grounds", location: "ABSU, Uturu", organiser: "Joint Christian Fellowship", fee: "Free", interested: 190, going: 145, description: "An evening of worship, drama, word and community prayer for exam success.", whatsapp: "2348034567892" },
+    ];
+
+    const INITIAL_OPPORTUNITIES = [
+      { id: 401, title: "NNPC / Seplat JV Undergraduate National Scholarship 2026/2027", type: "Scholarship", source: "Seplat Energy Official Portal", eligibility: "200L & above in Engineering, Agriculture, Geosciences or Management with 3.5+ CGPA", deadline: "18 Days Left", grant: "₦250,000 / year", link: "https://seplatenergy.com" },
+      { id: 402, title: "6-Month Paid SIWES Placement — IITA Ibadan & Umudike Root Crops Station", type: "SIWES / Internship", source: "NRCRI / IITA Youth Agripreneurs", eligibility: "300L/400L students in Agronomy, Plant Science, Biochemistry, Food Tech & Engineering", deadline: "12 Days Left", grant: "₦50,000 monthly stipend", link: "https://iita.org" },
+      { id: 403, title: "Tony Elumelu Foundation Student Entrepreneur Seed Grant", type: "Grant & Competition", source: "TEF Connect", eligibility: "Student founders across MOUAU & ABSU with early-stage agribusiness, retail or tech ventures", deadline: "25 Days Left", grant: "$5,000 non-refundable seed capital", link: "https://tefconnect.com" },
+      { id: 404, title: "Google Africa Developer Scholarship & Cloud Bootcamp", type: "Tech Bootcamp", source: "Andela / Pluralsight", eligibility: "Open to all students interested in Android, Web or Google Cloud Engineering", deadline: "9 Days Left", grant: "Free Certification + Swag", link: "https://developers.google.com" },
+    ];
+
+    const INITIAL_SERVICES = [
+      { id: 501, title: "Affordable Website Design & Landing Pages for Small Businesses", category: "Website Development", provider: "Chidinma Nwosu (300L CS)", location: "MOUAU, Umudike", price: "From ₦35,000", rating: "4.9 ★ (27 reviews)", verified: true, description: "Contact me for modern business websites, student portfolios, e-commerce stores and SEO.", whatsapp: "2348023456702" },
+      { id: 502, title: "Home & Hostel Laundry Pickup + Express Ironing", category: "Laundry", provider: "FreshFold Campus Laundry", location: "MOUAU, Umudike", price: "₦2,500 / basket", rating: "4.8 ★ (41 reviews)", verified: true, description: "Free pickup and delivery around 82 Bus Stop, Ndoro, Okwuta and on-campus hostels.", whatsapp: "2348051112202" },
+      { id: 503, title: "Knotless Braids, Wig Revamp & Graduation Makeup", category: "Hairdressing & Makeup", provider: "GlamByAdaeze Studio", location: "MOUAU, Umudike", price: "From ₦4,000", rating: "5.0 ★ (34 reviews)", verified: true, description: "Home service available. Neat painless braids, frontal installation and convocation glam.", whatsapp: "2348045678904" },
+      { id: 504, title: "100L–200L Calculus, Physics & Programming Private Tutorials", category: "Private Tutoring", provider: "Engr. Somto & Team", location: "MOUAU & ABSU", price: "₦3,000 / month", rating: "4.9 ★ (52 reviews)", verified: true, description: "Weekend small-group coaching and past-question drills to boost your GPA.", whatsapp: "2348056789005" },
+      { id: 505, title: "Laptop Motherboard, Screen & iPhone Repair Specialist", category: "Phone & Laptop Repairs", provider: "FixIt Lab Complex", location: "MOUAU, Umudike", price: "Free Diagnostics", rating: "4.7 ★ (19 reviews)", verified: true, description: "Same-day screen swap, battery replacement, SSD upgrade and Windows/Mac installation.", whatsapp: "2348056789012" },
+    ];
+
+    const INITIAL_ACCOMMODATION = [
+      { id: 601, title: "Self-con Lodge at 82 Bus Stop (Steady Water & Fenced)", type: "Self-Contained", price: "₦180,000 / yr", location: "MOUAU, Umudike", area: "82 Bus Stop", verified: true, description: "Tiled self-contain with borehole water, individual prepaid meter and security gate.", whatsapp: "2348012345678" },
+      { id: 602, title: "FEMALE ROOMMATE NEEDED — 2-Bedroom Flat at Ahiaeke", type: "Roommate Needed", price: "₦85,000 each (Rent Shared Equally)", location: "MOUAU, Umudike", area: "Ahiaeke Layout", verified: true, description: "Roommate needed for a clean 2-bedroom apartment around Umudike. Separate rooms, shared kitchen & sitting room.", whatsapp: "2348089012345" },
+      { id: 603, title: "Executive Newly-Built Self-con with POP & Solar Lights", type: "Self-Contained", price: "₦250,000 / yr", location: "MOUAU, Umudike", area: "Ndoro Junction", verified: true, description: "Wardrobe, kitchen cabinet, 24/7 solar compound lighting and 5 mins Keke ride to Main Gate.", whatsapp: "2348092223334" },
+      { id: 604, title: "Male Roommate Needed — Up-School Gate Self-Con", type: "Roommate Needed", price: "₦60,000 split rent", location: "ABSU, Uturu", area: "Uturu Main Gate", verified: true, description: "Looking for a tidy 200L/300L student to share a spacious self-con with fan and reading table.", whatsapp: "2348045678901" },
+    ];
+
+    const INITIAL_PEOPLE = [
+      { id: 701, name: "Tobechi Okafor", school: "MOUAU, Umudike", dept: "Accounting • 400L", bio: "Final Year Senator, fintech enthusiast & student business mentor.", interests: ["Finance", "Entrepreneurship", "Football"], online: true, verified: true, whatsapp: "2348012345601" },
+      { id: 702, name: "Chidinma Nwosu", school: "MOUAU, Umudike", dept: "Computer Science • 300L", bio: "GDSC Tech Lead building React apps & helping students break into tech.", interests: ["Programming", "UI/UX Design", "Tech Events"], online: true, verified: true, whatsapp: "2348023456702" },
+      { id: 703, name: "Kelechi Emenike", school: "MOUAU, Umudike", dept: "Computer Engineering • 500L", bio: "Solar IoT builder, NUESA executive & Arsenal fan.", interests: ["Programming", "Football", "Hardware"], online: false, verified: true, whatsapp: "2348034567803" },
+      { id: 704, name: "Ebuka Madu", school: "ABSU, Uturu", dept: "Mass Communication • 300L", bio: "Campus blogger, podcast host & event MC across Abia campuses.", interests: ["Entertainment", "Blogging", "Photography"], online: true, verified: true, whatsapp: "2348045678904" },
+      { id: 705, name: "Blessing Anyanwu", school: "MOUAU, Umudike", dept: "Agribusiness • 300L", bio: "Founder @GreenBasket — connecting student farmers to local markets.", interests: ["Entrepreneurship", "Agribusiness", "Fashion"], online: true, verified: true, whatsapp: "2348067890106" },
+      { id: 706, name: "Victor Nnanna", school: "Umuahia & Surroundings", dept: "Creative Director", bio: "Videographer & brand designer working with student startups.", interests: ["Photography", "UI/UX Design", "Music"], online: true, verified: false, whatsapp: "2348056789005" },
+    ];
+
+    const INITIAL_COMMUNITIES = [
+      { id: 801, name: "MOUAU Computer Science & Tech Community", category: "Technology", members: 840, admin: "Chidinma Nwosu", description: "Share coding resources, hackathon alerts, GitHub projects and remote internship referrals.", latestPost: "New React & Python study group starts this Saturday at COLPHYS Lab 2!" },
+      { id: 802, name: "Student Entrepreneurs & Hustlers (MOUAU + ABSU)", category: "Business", members: 1290, admin: "Tobechi Okafor", description: "Network with student vendors, learn branding, supplier sourcing and grant opportunities.", latestPost: "How to register your student business with CAC under ₦15k — thread posted." },
+      { id: 803, name: "MOUAU Football Lovers & FPL League", category: "Sports", members: 960, admin: "Kelechi Emenike", description: "VC's Cup match updates, UEFA Champions League viewing centres and Fantasy Premier League.", latestPost: "COLENG vs COLNAS final predictions — who takes the trophy?" },
+      { id: 804, name: "Freelancers & Remote Workers Around Umudike", category: "Career", members: 510, admin: "Victor Nnanna", description: "Upwork, Fiverr, graphic design, copywriting and foreign client payment tips.", latestPost: "Weekly portfolio review session tonight at 8 PM." },
+    ];
+
+    const INITIAL_BLOGGERS = [
+      { id: 901, title: "How 5 MOUAU Students Built a Solar Charging Business From Their Hostel", category: "Business & Campus Gist", author: "Ebuka Madu", badge: "Verified Blogger", popular: true, reads: "3.4k reads", time: "4 min read", excerpt: "Power outages around 82 Bus Stop turned into a profitable student venture serving over 200 devices daily…" },
+      { id: 902, title: "Complete Guide to Securing Your 300L SIWES Placement Before Everyone Else", category: "Career Development", author: "Chidinma Nwosu", badge: "Verified Blogger", popular: true, reads: "2.8k reads", time: "5 min read", excerpt: "From IITA and NRCRI to tech companies in Umuahia and Lagos—here are the exact application templates that work…" },
+      { id: 903, title: "Top 7 Budget-Friendly Food Spots Around MOUAU & ABSU Gates Ranked", category: "Lifestyle & Food", author: "Adaeze Uchendu", badge: "Popular Blogger", popular: true, reads: "4.1k reads", time: "3 min read", excerpt: "We tasted Jollof, Abacha and Ofe Owerri across Umudike Gate and Ndoro so your pocket doesn't suffer…" },
+    ];
+
+    const INITIAL_FOOD = [
+      { id: 1001, name: "Mama Nkechi's Native Kitchen", location: "MOUAU Main Gate", hours: "7:30 AM – 9:30 PM", rating: "4.9 ★", specialty: "Jollof Rice, Ofe Owerri, Abacha & Catfish Pepper Soup", priceRange: "₦1,200 – ₦3,000", whatsapp: "2348023456789" },
+      { id: 1002, name: "82 Junction Shawarma & Grill Spot", location: "82 Bus Stop, Umudike", hours: "12:00 PM – 10:30 PM", rating: "4.8 ★", specialty: "Double-Sausage Chicken Shawarma, Grilled Catfish & Smoothies", priceRange: "₦2,000 – ₦5,500", whatsapp: "2348033344411" },
+      { id: 1003, name: "Campus Cakes, Small Chops & Parfait Bar", location: "SUB Complex, MOUAU", hours: "8:00 AM – 6:00 PM", rating: "4.9 ★", specialty: "Birthday Cakes, Greek Yogurt Parfait, Meat Pie & Zobo", priceRange: "₦800 – ₦15,000", whatsapp: "2348044455522" },
+    ];
+
+    const INITIAL_LOST_FOUND = [
+      { id: 1101, status: "LOST", title: "LOST STUDENT ID CARD — Okafor Chibuike (COLENG)", location: "Around MOUAU Main Entrance / Gate", date: "Reported Today", description: "A MOUAU student ID card in a transparent holder was lost around the main entrance. Please contact if found.", whatsapp: "2348011199900" },
+      { id: 1102, status: "FOUND", title: "FOUND Black Oraimo Earbuds Case", location: "COLPHYS Lecture Hall 1", date: "Reported Yesterday", description: "Found after the 2:00 PM MTH lecture. Describe the sticker on the back to claim it.", whatsapp: "2348022299911" },
+      { id: 1103, status: "LOST", title: "LOST Brown Leather Wallet with UBA ATM Card", location: "Keke Drop between Ndoro & 82 Bus Stop", date: "2 days ago", description: "Reward offered! Contains ATM card and library clearance slip.", whatsapp: "2348033399922" },
+    ];
+
+    const ROADMAP_ITEMS = [
+      { phase: "Phase 1 • Live Now", status: "Available", color: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40", items: ["User Profiles & Location Filter (MOUAU/ABSU)", "Community Feed & Sponsored Ads", "Connect With People & Interest Filter", "Buy & Sell Marketplace (First 2 Listings FREE)", "Structured Jobs & Gigs + Anti-Scam Protection", "Events with 'Interested' & 'Going' RSVPs", "Report & Admin Moderation Dashboard"] },
+      { phase: "Phase 2 • Rolling Out", status: "In Development", color: "bg-blue-500/20 text-blue-300 border-blue-500/40", items: ["Verified & Popular Bloggers Hub", "Communities & Discussion Groups", "Accommodation & Roommate Matcher", "Student Services Directory", "Scholarships & SIWES Opportunities Tracker", "Lost & Found + Food & Restaurants Directory"] },
+      { phase: "Phase 3 • Future", status: "Planned", color: "bg-amber-500/20 text-amber-300 border-amber-500/40", items: ["In-App Food Ordering & Campus Delivery", "QR Event Ticketing", "Verified Student Ride-Sharing (Umuahia ↔ MOUAU ↔ ABSU)", "Native Android & iOS Mobile App", "Automated Business Analytics Dashboard"] },
+    ];
+
+    /* ============================================================================
+       2. HELPERS & ICONS
+       ============================================================================ */
     const formatWhatsApp = (num) => {
       const d = String(num).replace(/\D/g, "");
       if (d.startsWith("234")) return d;
@@ -98,70 +220,48 @@
       return "234" + d;
     };
 
-    const formatPrice = (raw) => {
-      const cleaned = raw.replace(/[₦,\s]/g, "");
-      return /^\d+$/.test(cleaned) ? `₦${Number(cleaned).toLocaleString("en-NG")}` : raw.trim();
-    };
-
     const initials = (name) =>
-      name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join("") || "ST";
+      name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join("") || "MC";
 
     const inputCls =
-      "w-full rounded-xl bg-slate-950/80 border border-blue-800/60 px-4 py-3 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40 transition";
+      "w-full rounded-xl bg-slate-950/80 border border-blue-800/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40 transition";
 
-    /* ---------------- Icons ---------------- */
-    const Icon = ({ children, className = "h-5 w-5" }) => (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-           strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-        {children}
-      </svg>
-    );
-    const SearchIcon = (p) => <Icon {...p}><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></Icon>;
-    const PlusIcon   = (p) => <Icon {...p}><path d="M5 12h14" /><path d="M12 5v14" /></Icon>;
-    const XIcon      = (p) => <Icon {...p}><path d="M18 6 6 18" /><path d="m6 6 12 12" /></Icon>;
-    const PinIcon    = (p) => <Icon {...p}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></Icon>;
-    const ChatIcon   = (p) => <Icon {...p}><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></Icon>;
-    const CheckIcon  = (p) => <Icon {...p}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><path d="m9 11 3 3L22 4" /></Icon>;
-    const UploadIcon = (p) => <Icon {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" x2="12" y1="3" y2="15" /></Icon>;
-    const MenuIcon   = (p) => <Icon {...p}><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></Icon>;
-
-    /* ---------------- Small UI pieces ---------------- */
     function Logo() {
       return (
         <div className="flex items-center gap-2.5">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-green-600 font-black text-white shadow-lg shadow-blue-950/60">
-            CC
+            MC
           </div>
           <div className="leading-tight">
-            <p className="text-base font-extrabold tracking-tight text-white">CampusConnect</p>
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-400">MOUAU UMUDIKE</p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-base font-extrabold tracking-tight text-white">MOUAU Connect</p>
+              <span className="rounded-md bg-amber-500/20 border border-amber-400/40 px-1.5 py-0.5 text-[10px] font-extrabold uppercase text-amber-300">
+                BETA
+              </span>
+            </div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-blue-300/80">
+              MOUAU • ABSU • UMUAHIA
+            </p>
           </div>
         </div>
-      );
-    }
-
-    function Field({ label, children }) {
-      return (
-        <label className="block">
-          <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-blue-300/80">{label}</span>
-          {children}
-        </label>
       );
     }
 
     function Toast({ message }) {
       if (!message) return null;
       return (
-        <div className="pointer-events-none fixed inset-x-0 bottom-24 z-[70] flex justify-center px-4">
-          <div role="status" className="toast-in flex items-center gap-3 rounded-xl border border-blue-500/40 bg-slate-900/95 px-4 py-3 text-sm font-medium text-white shadow-2xl backdrop-blur">
-            <span className="text-green-400"><CheckIcon /></span>
+        <div className="pointer-events-none fixed inset-x-0 bottom-24 z-[80] flex justify-center px-4">
+          <div role="status" className="toast-in flex items-center gap-2.5 rounded-xl border border-blue-400/40 bg-slate-900/95 px-4 py-3 text-sm font-semibold text-white shadow-2xl backdrop-blur">
+            <span className="text-emerald-400">✔</span>
             {message}
           </div>
         </div>
       );
     }
 
-    /* ---------------- 1. Auth ---------------- */
+    /* ============================================================================
+       3. AUTHENTICATION SCREEN
+       ============================================================================ */
     function AuthScreen({ onAuth }) {
       const [mode, setMode] = useState("signin");
       const [form, setForm] = useState({ fullName: "", studentId: "", department: "", password: "" });
@@ -169,37 +269,37 @@
       const isSignup = mode === "signup";
 
       const update = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-      const switchMode = (m) => { setMode(m); setError(""); };
 
       const submit = (e) => {
         e.preventDefault();
-        if (!form.studentId.trim() || !form.password) return setError("Please enter your Student ID and password.");
-        if (isSignup) {
-          if (!form.fullName.trim() || !form.department) return setError("Please fill in every field.");
-          if (form.password.length < 6) return setError("Password must be at least 6 characters.");
-        }
+        if (!form.studentId.trim() || !form.password) return setError("Please enter your ID/Email and password.");
+        if (isSignup && (!form.fullName.trim() || !form.department)) return setError("Please fill in every field.");
         onAuth({
           name: isSignup ? form.fullName.trim() : "Tobechi Okafor",
           studentId: form.studentId.trim().toUpperCase(),
-          department: isSignup ? form.department : "COLMAS",
+          department: isSignup ? form.department : "COLMAS (MOUAU)",
+          verifiedStudent: true,
         });
       };
 
       return (
-        <main className="flex min-h-screen items-center justify-center px-4 py-10">
-          <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,rgba(37,99,235,0.28),transparent_65%)]" />
+        <main className="flex min-h-screen flex-col items-center justify-center px-4 py-10">
+          <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,rgba(37,99,235,0.32),transparent_65%)]" />
           <div className="pop-in relative w-full max-w-md rounded-3xl border border-blue-800/50 bg-slate-900/90 p-6 shadow-2xl backdrop-blur sm:p-8">
-            <div className="mb-6 flex justify-center"><Logo /></div>
-            <h1 className="text-center text-2xl font-bold text-white">
-              {isSignup ? "Join your campus network" : "Welcome back, Lion"}
+            <div className="mb-5 flex justify-center"><Logo /></div>
+            <h1 className="text-center text-2xl font-extrabold text-white">
+              {isSignup ? "Join the Local Digital Ecosystem" : "Welcome to MOUAU Connect"}
             </h1>
-            <p className="mt-1 text-center text-sm text-blue-200/70">
-              Directory, lodges, vendors & SUG events around Umudike.
+            <p className="mt-1 text-center text-xs font-medium text-amber-400">
+              “Connecting People. Creating Opportunities. Building Communities.”
+            </p>
+            <p className="mt-1.5 text-center text-xs text-blue-200/70">
+              For students, young people & businesses around MOUAU, ABSU and surrounding communities.
             </p>
 
-            <div className="mt-6 grid grid-cols-2 rounded-xl bg-slate-950/90 p-1 border border-blue-900/50">
+            <div className="mt-5 grid grid-cols-2 rounded-xl bg-slate-950/90 p-1 border border-blue-900/50">
               {[["signin", "Sign In"], ["signup", "Create Account"]].map(([key, label]) => (
-                <button key={key} type="button" onClick={() => switchMode(key)}
+                <button key={key} type="button" onClick={() => { setMode(key); setError(""); }}
                   className={`rounded-lg py-2.5 text-sm font-semibold transition ${
                     mode === key ? "bg-blue-600 text-white shadow" : "text-slate-400 hover:text-amber-400"
                   }`}>
@@ -208,110 +308,139 @@
               ))}
             </div>
 
-            <form onSubmit={submit} className="mt-6 space-y-4" noValidate>
+            <form onSubmit={submit} className="mt-5 space-y-3.5" noValidate>
               {isSignup && (
-                <Field label="Full Name">
-                  <input name="fullName" value={form.fullName} onChange={update} className={inputCls} placeholder="e.g. Tobechi Okafor" autoComplete="name" />
-                </Field>
+                <div>
+                  <span className="mb-1 block text-xs font-semibold text-blue-200">Full Name</span>
+                  <input name="fullName" value={form.fullName} onChange={update} className={inputCls} placeholder="e.g. Tobechi Okafor" />
+                </div>
               )}
-              <Field label="MOUAU Student ID">
-                <input name="studentId" value={form.studentId} onChange={update} className={inputCls} placeholder="e.g. MOUAU/21/12345" autoComplete="username" />
-              </Field>
+              <div>
+                <span className="mb-1 block text-xs font-semibold text-blue-200">Student ID / Phone or Email</span>
+                <input name="studentId" value={form.studentId} onChange={update} className={inputCls} placeholder="e.g. MOUAU/21/12345 or email" />
+              </div>
               {isSignup && (
-                <Field label="Department / College">
+                <div>
+                  <span className="mb-1 block text-xs font-semibold text-blue-200">Campus / Community</span>
                   <select name="department" value={form.department} onChange={update} className={inputCls}>
-                    <option value="">Select your college</option>
+                    <option value="">Select Campus or College</option>
                     {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
                   </select>
-                </Field>
+                </div>
               )}
-              <Field label="Password">
-                <input type="password" name="password" value={form.password} onChange={update} className={inputCls}
-                  placeholder="••••••••" autoComplete={isSignup ? "new-password" : "current-password"} />
-              </Field>
+              <div>
+                <span className="mb-1 block text-xs font-semibold text-blue-200">Password</span>
+                <input type="password" name="password" value={form.password} onChange={update} className={inputCls} placeholder="••••••••" />
+              </div>
 
-              {error && (
-                <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-400">{error}</p>
-              )}
+              {error && <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">{error}</p>}
 
               <button type="submit"
-                className="w-full rounded-xl bg-green-600 py-3 text-sm font-bold text-white shadow-lg shadow-green-950/50 transition hover:bg-green-500 active:scale-[.98]">
-                {isSignup ? "Create Account" : "Sign In to CampusConnect"}
+                className="w-full rounded-xl bg-green-600 py-3 text-sm font-bold text-white shadow-lg shadow-green-950/50 transition hover:bg-green-500">
+                {isSignup ? "Create Verified Account" : "Enter MOUAU Connect Beta →"}
               </button>
             </form>
 
-            <p className="mt-5 text-center text-sm text-blue-200/70">
-              {isSignup ? "Already have an account? " : "New to CampusConnect? "}
-              <button type="button" onClick={() => switchMode(isSignup ? "signin" : "signup")}
-                className="font-semibold text-amber-400 hover:text-amber-300">
-                {isSignup ? "Sign in" : "Create one"}
-              </button>
+            <p className="mt-4 text-center text-[11px] text-blue-300/60">
+              Independent community platform connecting MOUAU, ABSU & surrounding areas.
             </p>
           </div>
         </main>
       );
     }
 
-    /* ---------------- 2. General Top Navbar + Sub-Navbar ---------------- */
-    function GeneralNavbar({ user, search, setSearch, activeSection, setActiveSection, onOpenModal, onLogout }) {
-      const [menuOpen, setMenuOpen] = useState(false);
-      const [mobileNavOpen, setMobileNavOpen] = useState(false);
+    /* ============================================================================
+       4. GENERAL TOP NAVBAR + DEDICATED SECTION NAVBAR
+       ============================================================================ */
+    function GeneralNavbar({
+      user, search, setSearch, campusFilter, setCampusFilter,
+      activeSection, setActiveSection, freePostsLeft,
+      onOpenPostModal, onOpenAdModal, onOpenAdmin, pendingCount, onLogout
+    }) {
+      const [profileOpen, setProfileOpen] = useState(false);
 
       return (
-        <header className="sticky top-0 z-50 border-b border-blue-800/50 bg-slate-950/90 backdrop-blur-md shadow-lg shadow-blue-950/40">
-          {/* Top Bar: Logo, Search, Post Button & User Profile */}
-          <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3">
-            <button onClick={() => setMobileNavOpen((o) => !o)} className="rounded-xl border border-blue-800/60 bg-blue-950/60 p-2 text-blue-200 lg:hidden" aria-label="Toggle navigation">
-              <MenuIcon />
+        <header className="sticky top-0 z-50 border-b border-blue-800/60 bg-slate-950/95 backdrop-blur-md shadow-xl">
+          {/* Beta Welcome Strip */}
+          <div className="border-b border-blue-900/50 bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-950 px-4 py-1.5 text-center text-xs text-blue-200">
+            <span className="font-bold text-amber-400">Welcome to MOUAU Connect Beta:</span>{" "}
+            Connecting People • Creating Opportunities • Building Communities across MOUAU, ABSU & Umuahia.
+            <button onClick={() => setActiveSection("roadmap")} className="ml-2 underline font-semibold text-amber-300 hover:text-white">
+              View Roadmap & Suggest Features →
             </button>
+          </div>
 
+          {/* Primary Bar: Logo, Campus Selector, Global Search, Actions */}
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3">
             <Logo />
 
-            {/* Search Input */}
-            <div className="relative order-3 w-full md:order-2 md:mx-4 md:w-auto md:flex-1">
-              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-300/60">
-                <SearchIcon className="h-4 w-4" />
-              </span>
-              <input type="search" value={search} onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search lodges, students, colleges, vendors, SUG events…" aria-label="Search CampusConnect"
-                className={`${inputCls} rounded-full bg-blue-950/60 py-2.5 pl-10`} />
+            {/* Target Location Filter */}
+            <select
+              value={campusFilter}
+              onChange={(e) => setCampusFilter(e.target.value)}
+              aria-label="Filter by campus location"
+              className="rounded-full border border-blue-700/60 bg-blue-950/80 px-3 py-2 text-xs font-semibold text-blue-100 focus:outline-none">
+              {LOCATIONS.map((loc) => <option key={loc} value={loc}>📍 {loc}</option>)}
+            </select>
+
+            {/* Global Search */}
+            <div className="relative order-3 w-full md:order-2 md:mx-2 md:w-auto md:flex-1">
+              <input
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search products, jobs, scholarships, roommates, events, people…"
+                className={`${inputCls} rounded-full bg-blue-950/60 py-2 pl-4`}
+              />
             </div>
 
-            {/* Quick Action + Profile */}
-            <div className="relative order-2 ml-auto flex items-center gap-2.5 md:order-3">
-              <span className="hidden items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300 xl:inline-flex">
-                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                2025/2026 Rain Session
-              </span>
-
-              <button onClick={onOpenModal}
-                className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-green-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-green-950/50 transition hover:bg-green-500">
-                <PlusIcon className="h-4 w-4" /> Post Listing
+            {/* Action Buttons */}
+            <div className="relative order-2 ml-auto flex items-center gap-2 md:order-3">
+              <button
+                onClick={onOpenAdModal}
+                className="hidden lg:inline-flex items-center gap-1 rounded-full border border-amber-400/50 bg-amber-500/15 px-3 py-1.5 text-xs font-bold text-amber-300 transition hover:bg-amber-500/25">
+                📢 Run Sponsored Ad
               </button>
 
-              <button onClick={() => setMenuOpen((o) => !o)} aria-label="Open profile menu"
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-slate-950 ring-2 ring-amber-400/40 transition hover:ring-amber-400">
+              <button
+                onClick={onOpenPostModal}
+                className="inline-flex items-center gap-1.5 rounded-full bg-green-600 px-3.5 py-2 text-xs font-bold text-white shadow-md transition hover:bg-green-500">
+                <span>＋ Post</span>
+                <span className="hidden sm:inline rounded-full bg-white/20 px-1.5 py-0.5 text-[10px]">
+                  {freePostsLeft} Free left
+                </span>
+              </button>
+
+              <button
+                onClick={onOpenAdmin}
+                title="Admin Moderation & Trust Center"
+                className="relative rounded-full border border-blue-700/60 bg-blue-950/80 px-3 py-1.5 text-xs font-bold text-blue-200 hover:border-blue-400">
+                🛡️ Trust
+                {pendingCount > 0 && (
+                  <span className="ml-1 rounded-full bg-amber-500 px-1.5 py-0.2 text-[10px] font-extrabold text-slate-950">
+                    {pendingCount}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => setProfileOpen((o) => !o)}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-500 text-xs font-black text-slate-950 ring-2 ring-amber-400/40">
                 {initials(user.name)}
               </button>
 
-              {menuOpen && (
-                <div className="pop-in absolute right-0 top-12 mt-1 w-64 rounded-2xl border border-blue-800/60 bg-slate-900 p-4 shadow-2xl">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 font-bold text-white">
-                      {initials(user.name)}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-white">{user.name}</p>
-                      <p className="text-xs text-blue-300/70">{user.studentId}</p>
-                    </div>
+              {profileOpen && (
+                <div className="pop-in absolute right-0 top-12 w-64 rounded-2xl border border-blue-800 bg-slate-900 p-4 shadow-2xl">
+                  <div className="flex items-center justify-between">
+                    <p className="font-bold text-white">{user.name}</p>
+                    <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300">✔ Verified</span>
                   </div>
-                  {user.department && (
-                    <span className="mt-3 inline-block rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-semibold text-amber-400">
-                      {user.department} • Active Student
-                    </span>
-                  )}
+                  <p className="text-xs text-blue-300/80">{user.studentId} • {user.department}</p>
+                  <p className="mt-2 rounded-lg bg-blue-950/80 p-2 text-[11px] text-blue-200">
+                    Free Marketplace Quota: <strong>{freePostsLeft} of 2</strong> free approved listings remaining.
+                  </p>
                   <button onClick={onLogout}
-                    className="mt-4 w-full rounded-lg border border-blue-800/60 bg-blue-950/50 py-2 text-sm font-medium text-blue-200 transition hover:border-amber-500 hover:text-amber-400">
+                    className="mt-3 w-full rounded-lg border border-blue-800 py-1.5 text-xs font-semibold text-blue-200 hover:border-amber-400 hover:text-amber-300">
                     Sign out
                   </button>
                 </div>
@@ -319,30 +448,30 @@
             </div>
           </div>
 
-          {/* Dedicated General Section Navbar Bar */}
-          <div className="border-t border-blue-900/60 bg-blue-950/70">
-            <nav className="no-scrollbar mx-auto flex max-w-7xl items-center gap-1.5 overflow-x-auto px-4 py-2" aria-label="General campus sections">
-              {NAV_SECTIONS.map((sec) => {
-                const active = activeSection === sec.key;
+          {/* Dedicated General Section Navbar */}
+          <div className="border-t border-blue-900/70 bg-blue-950/80">
+            <nav className="no-scrollbar mx-auto flex max-w-7xl items-center gap-1.5 overflow-x-auto px-4 py-2" aria-label="General Platform Navigation">
+              {MAIN_NAV.map((item) => {
+                const active = activeSection === item.key;
                 return (
                   <button
-                    key={sec.key}
-                    onClick={() => { setActiveSection(sec.key); setMobileNavOpen(false); }}
-                    className={`flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-xs sm:text-sm font-semibold transition ${
+                    key={item.key}
+                    onClick={() => setActiveSection(item.key)}
+                    className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition ${
                       active
-                        ? "bg-blue-600 text-white shadow-md shadow-blue-950/60 ring-1 ring-blue-400/40"
-                        : "text-blue-200/80 hover:bg-blue-900/50 hover:text-white"
+                        ? "bg-blue-600 text-white shadow-md shadow-blue-950/70 ring-1 ring-blue-400/50"
+                        : "text-blue-200/80 hover:bg-blue-900/60 hover:text-white"
                     }`}>
-                    <span>{sec.icon}</span>
-                    <span>{sec.label}</span>
-                    {sec.badge && (
-                      <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-emerald-300">
-                        {sec.badge}
+                    <span>{item.icon}</span>
+                    <span>{item.label}</span>
+                    {item.badge && (
+                      <span className="rounded-full bg-amber-500/20 border border-amber-400/30 px-1.5 py-0.2 text-[10px] text-amber-300">
+                        {item.badge}
                       </span>
                     )}
-                    {sec.count && (
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${active ? "bg-white/20 text-white" : "bg-blue-900/80 text-blue-300"}`}>
-                        {sec.count}
+                    {item.count && (
+                      <span className="rounded-full bg-blue-900 px-1.5 py-0.2 text-[10px] text-blue-200">
+                        {item.count}
                       </span>
                     )}
                   </button>
@@ -350,505 +479,1326 @@
               })}
             </nav>
           </div>
-
-          {/* Mobile Drawer for General Sections */}
-          {mobileNavOpen && (
-            <div className="border-t border-blue-800/60 bg-slate-900/95 px-4 py-3 lg:hidden">
-              <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-blue-400">Academic & Social Core</p>
-              <div className="grid grid-cols-2 gap-2">
-                {NAV_SECTIONS.map((sec) => (
-                  <button
-                    key={sec.key}
-                    onClick={() => { setActiveSection(sec.key); setMobileNavOpen(false); }}
-                    className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-left text-xs font-semibold ${
-                      activeSection === sec.key ? "bg-blue-600 text-white" : "bg-blue-950/60 text-blue-200"
-                    }`}>
-                    <span>{sec.icon}</span>
-                    <span>{sec.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </header>
       );
     }
 
-    /* ---------------- 3. Listing card ---------------- */
-    function ListingCard({ listing }) {
-      const cat = CATEGORIES[listing.category];
-      const waLink = `https://wa.me/${formatWhatsApp(listing.whatsapp)}?text=${encodeURIComponent(
-        `Hi! I saw your listing "${listing.title}" on CampusConnect MOUAU. Is it still available?`
-      )}`;
-
-      return (
-        <article className="group flex flex-col overflow-hidden rounded-2xl border border-blue-800/50 bg-slate-900/85 shadow-lg backdrop-blur transition duration-200 hover:-translate-y-0.5 hover:border-blue-500/70 hover:shadow-blue-950/60">
-          <div className="relative aspect-[16/10] overflow-hidden">
-            {listing.image ? (
-              <img src={listing.image} alt={listing.title} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
-            ) : (
-              <div className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${cat.gradient}`}>
-                <span className="text-5xl drop-shadow-lg">{cat.icon}</span>
-              </div>
-            )}
-            <span className="absolute left-3 top-3 rounded-full bg-amber-500 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-slate-950 shadow">
-              {cat.label}
-            </span>
-            {listing.isNew && (
-              <span className="absolute right-3 top-3 rounded-full bg-green-600 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow">
-                Featured
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-1 flex-col p-4">
-            <h3 className="line-clamp-2 text-base font-bold leading-snug text-white">{listing.title}</h3>
-            {listing.description && (
-              <p className="mt-1 line-clamp-2 text-sm text-blue-200/70">{listing.description}</p>
-            )}
-
-            <div className="mt-auto flex items-center justify-between gap-2 pt-3">
-              <span className="text-lg font-extrabold text-amber-400">{listing.price}</span>
-              <span className="inline-flex max-w-[55%] items-center gap-1 rounded-full bg-blue-950/80 border border-blue-800/50 px-2.5 py-1 text-xs text-blue-200">
-                <PinIcon className="h-3.5 w-3.5 shrink-0 text-green-400" />
-                <span className="truncate">{listing.location}</span>
-              </span>
-            </div>
-
-            <a href={waLink} target="_blank" rel="noopener noreferrer"
-              className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-500 active:scale-[.98]">
-              <ChatIcon className="h-4 w-4" /> Chat on WhatsApp
-            </a>
-          </div>
-        </article>
-      );
-    }
-
-    /* ---------------- 3B. Student Directory & Colleges Views ---------------- */
-    function StudentDirectoryView({ search }) {
-      const q = search.trim().toLowerCase();
-      const list = STUDENTS_DATA.filter((s) =>
-        !q || [s.name, s.college, s.dept, s.role, ...s.skills].some((x) => x.toLowerCase().includes(q))
-      );
-
-      return (
-        <section>
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-blue-800/50 bg-blue-950/50 p-5">
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-amber-400">MOUAU Verified Network</span>
-              <h2 className="text-xl font-bold text-white sm:text-2xl">Student Directory & Leaders</h2>
-              <p className="text-sm text-blue-200/70">Connect with course reps, tech leads, SUG senators and student entrepreneurs.</p>
-            </div>
-            <div className="flex gap-4 text-center">
-              <div className="rounded-xl bg-slate-900/90 px-4 py-2.5 border border-blue-800/40">
-                <p className="text-lg font-extrabold text-blue-400">3,480</p>
-                <p className="text-[11px] uppercase text-blue-200/70">Active Students</p>
-              </div>
-              <div className="rounded-xl bg-slate-900/90 px-4 py-2.5 border border-blue-800/40">
-                <p className="text-lg font-extrabold text-amber-400">10</p>
-                <p className="text-[11px] uppercase text-blue-200/70">Colleges</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {list.map((st) => (
-              <div key={st.id} className="flex flex-col justify-between rounded-2xl border border-blue-800/50 bg-slate-900/85 p-5 shadow-lg">
-                <div>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800 text-base font-extrabold text-white">
-                        {initials(st.name)}
-                        {st.online && <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-slate-900 bg-emerald-400" />}
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-white">{st.name}</h3>
-                        <p className="text-xs text-blue-300/80">{st.dept} • {st.level}</p>
-                      </div>
-                    </div>
-                    <span className="rounded-full bg-amber-500/15 px-2.5 py-1 text-xs font-bold text-amber-400">
-                      {st.college}
-                    </span>
-                  </div>
-
-                  <p className="mt-3 inline-block rounded-lg bg-blue-950/80 border border-blue-800/50 px-2.5 py-1 text-xs font-semibold text-blue-200">
-                    🎖️ {st.role}
-                  </p>
-
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {st.skills.map((sk) => (
-                      <span key={sk} className="rounded-full bg-slate-950/80 px-2.5 py-1 text-[11px] text-blue-200/80">
-                        {sk}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <a
-                  href={`https://wa.me/${st.whatsapp}?text=${encodeURIComponent(`Hi ${st.name.split(" ")[0]}, I found your profile on the CampusConnect MOUAU Student Directory!`)}`}
-                  target="_blank" rel="noopener noreferrer"
-                  className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-500">
-                  <ChatIcon className="h-4 w-4" /> Connect on WhatsApp
-                </a>
-              </div>
-            ))}
-          </div>
-        </section>
-      );
-    }
-
-    function CollegesView({ onSelectCollege }) {
-      return (
-        <section>
-          <div className="mb-6 rounded-2xl border border-blue-800/50 bg-blue-950/50 p-5">
-            <span className="text-xs font-bold uppercase tracking-wider text-amber-400">Academic Directory</span>
-            <h2 className="text-xl font-bold text-white sm:text-2xl">MOUAU Colleges & Departments</h2>
-            <p className="text-sm text-blue-200/70">Explore colleges, departments, deans and student communities across Michael Okpara University of Agriculture, Umudike.</p>
-          </div>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {COLLEGES_DATA.map((c) => (
-              <div key={c.code} className="flex flex-col justify-between rounded-2xl border border-blue-800/50 bg-slate-900/85 p-5 shadow-lg">
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="rounded-xl bg-blue-600 px-3 py-1 text-xs font-extrabold text-white">{c.code}</span>
-                    <span className="text-xs font-semibold text-amber-400">{c.students} Students</span>
-                  </div>
-                  <h3 className="mt-3 text-base font-bold text-white">{c.name}</h3>
-                  <p className="mt-1 text-xs text-blue-300/75">Dean: {c.dean}</p>
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {c.depts.map((d) => (
-                      <span key={d} className="rounded-lg bg-blue-950/80 border border-blue-800/40 px-2.5 py-1 text-xs text-blue-200">
-                        {d}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <button
-                  onClick={() => onSelectCollege(c.code)}
-                  className="mt-5 w-full rounded-xl border border-blue-600/60 bg-blue-600/20 py-2.5 text-xs font-bold text-blue-200 transition hover:bg-blue-600 hover:text-white">
-                  View {c.code} Students & Events →
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
-      );
-    }
-
-    /* ---------------- 4. Post listing modal ---------------- */
-    const EMPTY_FORM = { category: "hostel", title: "", price: "", location: "", description: "", whatsapp: "", image: null, imageName: "" };
-
-    function PostListingModal({ open, onClose, onSubmit }) {
-      const [form, setForm] = useState(EMPTY_FORM);
-      const [error, setError] = useState("");
-
-      useEffect(() => { if (!open) { setForm(EMPTY_FORM); setError(""); } }, [open]);
-
-      useEffect(() => {
-        if (!open) return;
-        const onKey = (e) => e.key === "Escape" && onClose();
-        document.addEventListener("keydown", onKey);
-        document.body.style.overflow = "hidden";
-        return () => {
-          document.removeEventListener("keydown", onKey);
-          document.body.style.overflow = "";
-        };
-      }, [open, onClose]);
-
-      if (!open) return null;
-
-      const update = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-
-      const handleFile = (e) => {
-        const file = e.target.files && e.target.files[0];
-        if (!file) return;
-        if (!file.type.startsWith("image/")) return setError("Please choose an image file.");
-        if (file.size > 5 * 1024 * 1024) return setError("Image must be under 5MB.");
-        const reader = new FileReader();
-        reader.onload = () => setForm((f) => ({ ...f, image: reader.result, imageName: file.name }));
-        reader.readAsDataURL(file);
-        setError("");
-      };
-
-      const submit = (e) => {
-        e.preventDefault();
-        const digits = form.whatsapp.replace(/\D/g, "");
-        if (!form.title.trim() || !form.price.trim() || !form.location.trim() || !digits)
-          return setError("Title, price, location and WhatsApp number are required.");
-        if (digits.length < 10 || digits.length > 13)
-          return setError("Enter a valid WhatsApp number, e.g. 08012345678.");
-
-        onSubmit({
-          id: Date.now(),
-          category: form.category,
-          title: form.title.trim(),
-          price: formatPrice(form.price),
-          location: form.location.trim(),
-          description: form.description.trim(),
-          whatsapp: digits,
-          image: form.image,
-          isNew: true,
-        });
-      };
-
-      return (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-slate-950/80 backdrop-blur-sm sm:items-center sm:p-4"
-             onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="post-title">
-          <div onClick={(e) => e.stopPropagation()}
-               className="pop-in max-h-[92vh] w-full overflow-y-auto rounded-t-3xl border border-blue-800/60 bg-slate-900 p-6 shadow-2xl sm:max-w-lg sm:rounded-3xl">
-            <div className="mb-5 flex items-center justify-between">
-              <div>
-                <h2 id="post-title" className="text-xl font-bold text-white">Post a Listing</h2>
-                <p className="text-sm text-blue-200/70">Reach thousands of MOUAU students.</p>
-              </div>
-              <button onClick={onClose} aria-label="Close"
-                className="rounded-full p-2 text-blue-300 transition hover:bg-blue-900/50 hover:text-white">
-                <XIcon />
-              </button>
-            </div>
-
-            <form onSubmit={submit} className="space-y-4" noValidate>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Category">
-                  <select name="category" value={form.category} onChange={update} className={inputCls}>
-                    <option value="hostel">Hostel</option>
-                    <option value="vendor">Vendor</option>
-                    <option value="event">Event</option>
-                  </select>
-                </Field>
-                <Field label="Price (₦)">
-                  <input name="price" value={form.price} onChange={update} className={inputCls} placeholder="e.g. 150000 or Free" />
-                </Field>
-              </div>
-
-              <Field label="Title">
-                <input name="title" value={form.title} onChange={update} className={inputCls} placeholder="e.g. Self-con at Ndoro Junction" />
-              </Field>
-
-              <Field label="Location">
-                <input name="location" value={form.location} onChange={update} className={inputCls} placeholder="e.g. 82 Bus Stop, Umudike" />
-              </Field>
-
-              <Field label="Description">
-                <textarea name="description" value={form.description} onChange={update} rows={3}
-                  className={`${inputCls} resize-none`} placeholder="Key details students should know…" />
-              </Field>
-
-              <Field label="Image">
-                {form.image ? (
-                  <div className="relative overflow-hidden rounded-xl border border-blue-800">
-                    <img src={form.image} alt="Preview" className="h-40 w-full object-cover" />
-                    <button type="button" onClick={() => setForm({ ...form, image: null, imageName: "" })}
-                      className="absolute right-2 top-2 rounded-full bg-slate-950/80 p-1.5 text-white hover:bg-slate-950" aria-label="Remove image">
-                      <XIcon className="h-4 w-4" />
-                    </button>
-                    <p className="truncate bg-slate-950 px-3 py-1.5 text-xs text-blue-300">{form.imageName}</p>
-                  </div>
-                ) : (
-                  <span className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-blue-800/70 bg-slate-950/60 px-4 py-6 text-center transition hover:border-blue-500">
-                    <UploadIcon className="h-6 w-6 text-amber-400" />
-                    <span className="text-sm text-blue-100">Tap to upload a photo</span>
-                    <span className="text-xs text-blue-300/60">PNG or JPG, up to 5MB</span>
-                    <input type="file" accept="image/*" onChange={handleFile} className="sr-only" />
-                  </span>
-                )}
-              </Field>
-
-              <Field label="WhatsApp Number">
-                <input name="whatsapp" type="tel" value={form.whatsapp} onChange={update} className={inputCls} placeholder="e.g. 08012345678" />
-              </Field>
-
-              {error && (
-                <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-400">{error}</p>
-              )}
-
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={onClose}
-                  className="flex-1 rounded-xl border border-blue-800 py-3 text-sm font-semibold text-blue-200 transition hover:border-blue-600">
-                  Cancel
-                </button>
-                <button type="submit"
-                  className="flex-1 rounded-xl bg-green-600 py-3 text-sm font-bold text-white shadow-lg shadow-green-950/50 transition hover:bg-green-500 active:scale-[.98]">
-                  Publish Listing
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      );
-    }
-
-    /* ---------------- App ---------------- */
+    /* ============================================================================
+       5. MAIN APPLICATION & ECOSYSTEM VIEWS
+       ============================================================================ */
     function App() {
       const [user, setUser] = useState(null);
-      const [listings, setListings] = useState(INITIAL_LISTINGS);
-      const [activeSection, setActiveSection] = useState("feed");
-      const [activeTab, setActiveTab] = useState("all");
+      const [activeSection, setActiveSection] = useState("home");
+      const [campusFilter, setCampusFilter] = useState("All Locations");
       const [search, setSearch] = useState("");
-      const [modalOpen, setModalOpen] = useState(false);
       const [toast, setToast] = useState(null);
+
+      // Core ecosystem state
+      const [ads, setAds] = useState(SPONSORED_ADS);
+      const [marketplace, setMarketplace] = useState(INITIAL_MARKETPLACE);
+      const [jobs, setJobs] = useState(INITIAL_JOBS);
+      const [events, setEvents] = useState(INITIAL_EVENTS);
+      const [opportunities] = useState(INITIAL_OPPORTUNITIES);
+      const [services, setServices] = useState(INITIAL_SERVICES);
+      const [accommodation, setAccommodation] = useState(INITIAL_ACCOMMODATION);
+      const [people] = useState(INITIAL_PEOPLE);
+      const [communities, setCommunities] = useState(INITIAL_COMMUNITIES);
+      const [bloggers] = useState(INITIAL_BLOGGERS);
+      const [food] = useState(INITIAL_FOOD);
+      const [lostFound, setLostFound] = useState(INITIAL_LOST_FOUND);
+
+      // Interactive user states
+      const [approvedUserProducts, setApprovedUserProducts] = useState(0); // First 2 FREE rule
+      const [rsvpState, setRsvpState] = useState({}); // { eventId: 'interested' | 'going' }
+      const [followedUsers, setFollowedUsers] = useState({});
+      const [joinedGroups, setJoinedGroups] = useState({ 801: true });
+      const [interestFilter, setInterestFilter] = useState("All");
+      const [jobTypeFilter, setJobTypeFilter] = useState("All");
+      const [marketCategory, setMarketCategory] = useState("All");
+
+      // Governance, Reporting & Roadmap state
+      const [reports, setReports] = useState([]);
+      const [pendingAds, setPendingAds] = useState([]);
+      const [suggestions, setSuggestions] = useState([
+        { id: 1, text: "Add a roommate compatibility quiz for off-campus lodges around 82 Bus Stop", votes: 47 },
+        { id: 2, text: "Verified student ride-sharing between Umuahia town and MOUAU morning lectures", votes: 39 },
+      ]);
+      const [newSuggestion, setNewSuggestion] = useState("");
+
+      // Modals
+      const [postModalOpen, setPostModalOpen] = useState(false);
+      const [adModalOpen, setAdModalOpen] = useState(false);
+      const [adminModalOpen, setAdminModalOpen] = useState(false);
+      const [dmTarget, setDmTarget] = useState(null);
+      const [dmText, setDmText] = useState("");
 
       useEffect(() => {
         if (!toast) return;
-        const t = setTimeout(() => setToast(null), 3000);
+        const t = setTimeout(() => setToast(null), 3200);
         return () => clearTimeout(t);
       }, [toast]);
 
-      // Sync general navbar sections with category filters
-      const handleSectionChange = (sectionKey) => {
-        setActiveSection(sectionKey);
-        if (sectionKey === "lodges") setActiveTab("hostel");
-        else if (sectionKey === "vendors") setActiveTab("vendor");
-        else if (sectionKey === "events") setActiveTab("event");
-        else if (sectionKey === "feed") setActiveTab("all");
+      const freePostsLeft = Math.max(0, 2 - approvedUserProducts);
+
+      const handleReport = (itemTitle, section) => {
+        setReports((prev) => [{ id: Date.now(), itemTitle, section, time: "Just now" }, ...prev]);
+        setToast(`Reported "${itemTitle}" to Admin Trust & Safety team.`);
       };
 
-      const closeModal = useCallback(() => setModalOpen(false), []);
-
-      const counts = useMemo(() => {
-        const c = { all: listings.length, hostel: 0, vendor: 0, event: 0 };
-        listings.forEach((l) => c[l.category]++);
-        return c;
-      }, [listings]);
-
-      const filtered = useMemo(() => {
-        const q = search.trim().toLowerCase();
-        return listings.filter((l) =>
-          (activeTab === "all" || l.category === activeTab) &&
-          (!q || [l.title, l.location, l.description].some((f) => f && f.toLowerCase().includes(q)))
+      const handleRsvp = (eventId, type) => {
+        const current = rsvpState[eventId];
+        if (current === type) return;
+        setEvents((prev) =>
+          prev.map((ev) => {
+            if (ev.id !== eventId) return ev;
+            return {
+              ...ev,
+              interested: type === "interested" ? ev.interested + 1 : current === "interested" ? ev.interested - 1 : ev.interested,
+              going: type === "going" ? ev.going + 1 : current === "going" ? ev.going - 1 : ev.going,
+            };
+          })
         );
-      }, [listings, activeTab, search]);
-
-      const handleAuth = (u) => {
-        setUser(u);
-        setToast(`Welcome, ${u.name.split(" ")[0]}! 🎓`);
+        setRsvpState((prev) => ({ ...prev, [eventId]: type }));
+        setToast(type === "going" ? "You're marked as GOING! Reminder set 🔔" : "Marked as INTERESTED ⭐");
       };
 
-      const handlePost = (listing) => {
-        setListings((prev) => [listing, ...prev]);
-        setModalOpen(false);
-        setActiveSection("feed");
-        setActiveTab("all");
-        setSearch("");
-        setToast("Listing published successfully!");
-        window.scrollTo({ top: 0, behavior: "smooth" });
+      // Filter helper for campus & search
+      const matchesFilter = (item, fields) => {
+        const locOk =
+          campusFilter === "All Locations" ||
+          !item.location ||
+          item.location.toLowerCase().includes(campusFilter.split(",")[0].toLowerCase());
+        const q = search.trim().toLowerCase();
+        const searchOk = !q || fields.some((f) => f && String(f).toLowerCase().includes(q));
+        return locOk && searchOk;
       };
 
-      const handleLogout = () => {
-        setUser(null);
-        setActiveSection("feed");
-        setActiveTab("all");
-        setSearch("");
-      };
+      /* ---------------- Sub-Modal: Create Universal Listing ---------------- */
+      function UniversalPostModal() {
+        const [postType, setPostType] = useState("marketplace");
+        const [title, setTitle] = useState("");
+        const [category, setCategory] = useState("Electronics");
+        const [condition, setCondition] = useState("Used");
+        const [price, setPrice] = useState("");
+        const [location, setLocation] = useState("MOUAU, Umudike");
+        const [description, setDescription] = useState("");
+        const [whatsapp, setWhatsapp] = useState("");
+
+        if (!postModalOpen) return null;
+
+        const submitPost = (e) => {
+          e.preventDefault();
+          if (!title.trim() || !whatsapp.trim()) {
+            setToast("Please enter a title and WhatsApp contact.");
+            return;
+          }
+
+          if (postType === "marketplace") {
+            const isFree = approvedUserProducts < 2;
+            setMarketplace((prev) => [
+              {
+                id: Date.now(),
+                name: title.trim(),
+                category,
+                condition,
+                price: price.trim() || "Negotiable",
+                location,
+                seller: `${user.name} (${isFree ? "Free Quota" : "Paid Listing"})`,
+                verified: true,
+                description: description.trim(),
+                whatsapp,
+              },
+              ...prev,
+            ]);
+            setApprovedUserProducts((c) => c + 1);
+            setActiveSection("marketplace");
+            setToast(
+              isFree
+                ? `Product listed FREE! (${Math.max(0, 1 - approvedUserProducts)} free listing remaining)`
+                : "Paid Marketplace product published!"
+            );
+          } else if (postType === "job") {
+            setJobs((prev) => [
+              {
+                id: Date.now(),
+                title: title.trim().toUpperCase(),
+                type: category || "Part-time",
+                employer: user.name,
+                verified: true,
+                location,
+                hours: "To be discussed",
+                salary: price.trim() || "To be discussed",
+                deadline: "Open",
+                description: description.trim(),
+                requirements: ["Honesty and punctuality", "Good communication skills"],
+                whatsapp,
+                featured: false,
+              },
+              ...prev,
+            ]);
+            setActiveSection("jobs");
+            setToast("Job opportunity published!");
+          } else if (postType === "accommodation") {
+            setAccommodation((prev) => [
+              {
+                id: Date.now(),
+                title: title.trim(),
+                type: category || "Self-Contained",
+                price: price.trim() || "Contact for rent",
+                location,
+                area: location,
+                verified: true,
+                description: description.trim(),
+                whatsapp,
+              },
+              ...prev,
+            ]);
+            setActiveSection("accommodation");
+            setToast("Accommodation / Roommate listing published!");
+          } else if (postType === "service") {
+            setServices((prev) => [
+              {
+                id: Date.now(),
+                title: title.trim(),
+                category: category || "Digital Skill",
+                provider: user.name,
+                location,
+                price: price.trim() || "Contact for quote",
+                rating: "New ★",
+                verified: true,
+                description: description.trim(),
+                whatsapp,
+              },
+              ...prev,
+            ]);
+            setActiveSection("services");
+            setToast("Service listing added to directory!");
+          } else if (postType === "lostfound") {
+            setLostFound((prev) => [
+              {
+                id: Date.now(),
+                status: category === "FOUND" ? "FOUND" : "LOST",
+                title: title.trim(),
+                location,
+                date: "Just now",
+                description: description.trim(),
+                whatsapp,
+              },
+              ...prev,
+            ]);
+            setActiveSection("lostfound");
+            setToast("Lost & Found alert posted!");
+          }
+          setPostModalOpen(false);
+        };
+
+        return (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm" onClick={() => setPostModalOpen(false)}>
+            <div onClick={(e) => e.stopPropagation()} className="pop-in max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-blue-700/60 bg-slate-900 p-6 shadow-2xl">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-extrabold text-white">Publish to MOUAU Connect</h2>
+                <button onClick={() => setPostModalOpen(false)} className="text-blue-300 hover:text-white">✕</button>
+              </div>
+
+              {/* Free 2 marketplace products notice */}
+              <div className="mt-3 rounded-xl border border-amber-400/40 bg-amber-500/10 p-3 text-xs text-amber-200">
+                💡 <strong>Marketplace Rule:</strong> Your first <strong>2 approved product listings are FREE</strong> ({freePostsLeft} remaining). Subsequent product listings & promoted posts are paid.
+              </div>
+
+              <form onSubmit={submitPost} className="mt-4 space-y-3.5">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <span className="mb-1 block text-xs font-semibold text-blue-200">Section</span>
+                    <select value={postType} onChange={(e) => setPostType(e.target.value)} className={inputCls}>
+                      <option value="marketplace">🛒 Sell a Product</option>
+                      <option value="job">💼 Post a Job / Gig</option>
+                      <option value="accommodation">🏘️ Lodge / Roommate</option>
+                      <option value="service">🛠️ Offer a Service</option>
+                      <option value="lostfound">🔍 Lost & Found</option>
+                    </select>
+                  </div>
+                  <div>
+                    <span className="mb-1 block text-xs font-semibold text-blue-200">Target Campus</span>
+                    <select value={location} onChange={(e) => setLocation(e.target.value)} className={inputCls}>
+                      <option value="MOUAU, Umudike">MOUAU, Umudike</option>
+                      <option value="ABSU, Uturu">ABSU, Uturu</option>
+                      <option value="Umuahia & Surroundings">Umuahia & Surroundings</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <span className="mb-1 block text-xs font-semibold text-blue-200">Title</span>
+                  <input value={title} onChange={(e) => setTitle(e.target.value)} className={inputCls} placeholder="e.g. Standing Fan / Sales Attendant Needed / Roommate Needed" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <span className="mb-1 block text-xs font-semibold text-blue-200">Category / Type</span>
+                    <input value={category} onChange={(e) => setCategory(e.target.value)} className={inputCls} placeholder="e.g. Electronics, Part-time, LOST" />
+                  </div>
+                  <div>
+                    <span className="mb-1 block text-xs font-semibold text-blue-200">Price / Salary (₦)</span>
+                    <input value={price} onChange={(e) => setPrice(e.target.value)} className={inputCls} placeholder="e.g. ₦25,000 or To be discussed" />
+                  </div>
+                </div>
+
+                {postType === "marketplace" && (
+                  <div>
+                    <span className="mb-1 block text-xs font-semibold text-blue-200">Product Condition</span>
+                    <select value={condition} onChange={(e) => setCondition(e.target.value)} className={inputCls}>
+                      <option value="Used">Used (Neat)</option>
+                      <option value="New">Brand New</option>
+                    </select>
+                  </div>
+                )}
+
+                <div>
+                  <span className="mb-1 block text-xs font-semibold text-blue-200">Description & Requirements</span>
+                  <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className={inputCls} placeholder="Include key details, requirements or condition…" />
+                </div>
+
+                <div>
+                  <span className="mb-1 block text-xs font-semibold text-blue-200">Verifiable WhatsApp Contact</span>
+                  <input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} className={inputCls} placeholder="e.g. 08012345678" />
+                </div>
+
+                <button type="submit" className="w-full rounded-xl bg-green-600 py-3 text-sm font-bold text-white hover:bg-green-500">
+                  Publish Listing
+                </button>
+              </form>
+            </div>
+          </div>
+        );
+      }
+
+      /* ---------------- Sub-Modal: Sponsored Ad Campaign Builder ---------------- */
+      function SponsoredAdModal() {
+        const [title, setTitle] = useState("");
+        const [category, setCategory] = useState("Restaurant & Food");
+        const [target, setTarget] = useState("MOUAU, ABSU & Surrounding Areas");
+        const [duration, setDuration] = useState("7 Days (₦5,000)");
+        const [description, setDescription] = useState("");
+        const [whatsapp, setWhatsapp] = useState("");
+
+        if (!adModalOpen) return null;
+
+        const submitAd = (e) => {
+          e.preventDefault();
+          if (!title.trim() || !whatsapp.trim()) return;
+          setPendingAds((prev) => [
+            {
+              id: "ad-" + Date.now(),
+              title: title.trim(),
+              category,
+              target,
+              duration,
+              reach: "Pending Admin Approval",
+              description: description.trim(),
+              whatsapp,
+              sponsor: user.name,
+              verified: true,
+            },
+            ...prev,
+          ]);
+          setAdModalOpen(false);
+          setToast("Sponsored Ad submitted for Admin Legitimacy Review! 🛡️");
+        };
+
+        return (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm" onClick={() => setAdModalOpen(false)}>
+            <div onClick={(e) => e.stopPropagation()} className="pop-in max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-amber-400/50 bg-slate-900 p-6 shadow-2xl">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-extrabold text-white">📢 Create Sponsored Ad Campaign</h2>
+                <button onClick={() => setAdModalOpen(false)} className="text-blue-300">✕</button>
+              </div>
+              <p className="mt-1 text-xs text-blue-200/80">
+                Choose your target campus, duration and category. All paid ads undergo manual review before publication to keep users safe.
+              </p>
+
+              <form onSubmit={submitAd} className="mt-4 space-y-3.5">
+                <div>
+                  <span className="mb-1 block text-xs font-semibold text-blue-200">Advertisement Title</span>
+                  <input value={title} onChange={(e) => setTitle(e.target.value)} className={inputCls} placeholder="e.g. 20% Student Discount at Crunchies / New Clothing Arrivals" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <span className="mb-1 block text-xs font-semibold text-blue-200">Target Location</span>
+                    <select value={target} onChange={(e) => setTarget(e.target.value)} className={inputCls}>
+                      <option>MOUAU, Umudike</option>
+                      <option>ABSU, Uturu</option>
+                      <option>MOUAU, ABSU & Surrounding Areas</option>
+                    </select>
+                  </div>
+                  <div>
+                    <span className="mb-1 block text-xs font-semibold text-blue-200">Campaign Duration</span>
+                    <select value={duration} onChange={(e) => setDuration(e.target.value)} className={inputCls}>
+                      <option>3 Days (₦2,500)</option>
+                      <option>7 Days (₦5,000)</option>
+                      <option>14 Days (₦9,000)</option>
+                      <option>30 Days (₦15,000)</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <span className="mb-1 block text-xs font-semibold text-blue-200">Ad Category</span>
+                  <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputCls}>
+                    <option>Restaurant & Food</option>
+                    <option>Fashion & Clothing</option>
+                    <option>Barbing & Salon</option>
+                    <option>Tech & Gadgets</option>
+                    <option>Event & Programme</option>
+                  </select>
+                </div>
+                <div>
+                  <span className="mb-1 block text-xs font-semibold text-blue-200">Ad Description</span>
+                  <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className={inputCls} placeholder="Describe your offer, discount or programme…" />
+                </div>
+                <div>
+                  <span className="mb-1 block text-xs font-semibold text-blue-200">Business WhatsApp / Contact</span>
+                  <input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} className={inputCls} placeholder="e.g. 08012345678" />
+                </div>
+                <button type="submit" className="w-full rounded-xl bg-amber-500 py-3 text-sm font-extrabold text-slate-950 hover:bg-amber-400">
+                  Submit Sponsored Ad for Review
+                </button>
+              </form>
+            </div>
+          </div>
+        );
+      }
+
+      /* ---------------- Sub-Modal: Admin Moderation & Trust Dashboard ---------------- */
+      function AdminDashboardModal() {
+        if (!adminModalOpen) return null;
+
+        const approveAd = (ad) => {
+          setAds((prev) => [{ ...ad, reach: "Live • Boosted" }, ...prev]);
+          setPendingAds((prev) => prev.filter((a) => a.id !== ad.id));
+          setToast("Sponsored Ad approved & published to homepage!");
+        };
+
+        return (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm" onClick={() => setAdminModalOpen(false)}>
+            <div onClick={(e) => e.stopPropagation()} className="pop-in max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-blue-700 bg-slate-900 p-6 shadow-2xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold uppercase text-amber-400">Day-One Governance</span>
+                  <h2 className="text-xl font-extrabold text-white">🛡️ Admin Moderation & Trust Dashboard</h2>
+                </div>
+                <button onClick={() => setAdminModalOpen(false)} className="text-blue-300">✕</button>
+              </div>
+
+              <div className="mt-4 grid grid-cols-3 gap-3 text-center">
+                <div className="rounded-2xl bg-blue-950/70 p-3 border border-blue-800/50">
+                  <p className="text-lg font-black text-amber-400">{pendingAds.length}</p>
+                  <p className="text-[11px] text-blue-200">Ads Awaiting Review</p>
+                </div>
+                <div className="rounded-2xl bg-blue-950/70 p-3 border border-blue-800/50">
+                  <p className="text-lg font-black text-rose-400">{reports.length}</p>
+                  <p className="text-[11px] text-blue-200">User Reports</p>
+                </div>
+                <div className="rounded-2xl bg-blue-950/70 p-3 border border-blue-800/50">
+                  <p className="text-lg font-black text-emerald-400">100%</p>
+                  <p className="text-[11px] text-blue-200">Verified Employers</p>
+                </div>
+              </div>
+
+              <h3 className="mt-5 text-sm font-bold text-white">Pending Paid Advertisements (Review Before Publishing)</h3>
+              {pendingAds.length === 0 ? (
+                <p className="mt-2 rounded-xl bg-slate-950/60 p-3 text-xs text-blue-300/70">No pending ads right now. Click "📢 Run Sponsored Ad" in the header to test ad review.</p>
+              ) : (
+                <div className="mt-2 space-y-2">
+                  {pendingAds.map((ad) => (
+                    <div key={ad.id} className="flex items-center justify-between rounded-xl border border-amber-400/40 bg-slate-950/80 p-3">
+                      <div>
+                        <p className="text-sm font-bold text-white">{ad.title}</p>
+                        <p className="text-xs text-blue-300">{ad.target} • {ad.duration}</p>
+                      </div>
+                      <button onClick={() => approveAd(ad)} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white">
+                        Approve & Publish
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <h3 className="mt-5 text-sm font-bold text-white">User Safety Reports</h3>
+              {reports.length === 0 ? (
+                <p className="mt-2 rounded-xl bg-slate-950/60 p-3 text-xs text-blue-300/70">Zero active reports. Users can click "🚩 Report" on any listing or profile.</p>
+              ) : (
+                <div className="mt-2 space-y-2">
+                  {reports.map((r) => (
+                    <div key={r.id} className="flex items-center justify-between rounded-xl border border-rose-500/30 bg-rose-950/20 p-3 text-xs">
+                      <span>🚩 <strong>{r.itemTitle}</strong> ({r.section}) — {r.time}</span>
+                      <button onClick={() => setReports((prev) => prev.filter((x) => x.id !== r.id))} className="text-amber-300 underline">
+                        Dismiss
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      }
+
+      if (!user) return <AuthScreen onAuth={(u) => { setUser(u); setToast(`Welcome to MOUAU Connect Beta, ${u.name.split(" ")[0]}!`); }} />;
 
       return (
-        <>
-          {!user ? (
-            <AuthScreen onAuth={handleAuth} />
-          ) : (
-            <div className="min-h-screen">
-              <GeneralNavbar
-                user={user}
-                search={search}
-                setSearch={setSearch}
-                activeSection={activeSection}
-                setActiveSection={handleSectionChange}
-                onOpenModal={() => setModalOpen(true)}
-                onLogout={handleLogout}
-              />
+        <div className="min-h-screen">
+          <GeneralNavbar
+            user={user}
+            search={search}
+            setSearch={setSearch}
+            campusFilter={campusFilter}
+            setCampusFilter={setCampusFilter}
+            activeSection={activeSection}
+            setActiveSection={setActiveSection}
+            freePostsLeft={freePostsLeft}
+            onOpenPostModal={() => setPostModalOpen(true)}
+            onOpenAdModal={() => setAdModalOpen(true)}
+            onOpenAdmin={() => setAdminModalOpen(true)}
+            pendingCount={pendingAds.length + reports.length}
+            onLogout={() => setUser(null)}
+          />
 
-              <main className="mx-auto max-w-7xl px-4 pb-28 pt-6">
-                {/* Umudike Pulse Stats Hero Banner */}
-                <section className="mb-6 rounded-3xl border border-blue-800/50 bg-gradient-to-r from-blue-950/90 via-blue-900/70 to-slate-900/90 p-5 sm:p-6 shadow-xl">
-                  <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div>
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/20 border border-blue-400/30 px-3 py-1 text-xs font-bold text-blue-300">
-                        ⚡ Umudike Pulse Network • MOUAU
+          <main className="mx-auto max-w-7xl px-4 pb-28 pt-6 space-y-8">
+            {/* ====================================================================
+               SECTION 1: HOME (ECOSYSTEM OVERVIEW, SPONSORED ADS, NEWS & QUICK HUB)
+               ==================================================================== */}
+            {activeSection === "home" && (
+              <>
+                {/* Hero Banner */}
+                <section className="rounded-3xl border border-blue-700/50 bg-gradient-to-r from-blue-950 via-blue-900/80 to-slate-900 p-6 shadow-2xl">
+                  <div className="flex flex-wrap items-center justify-between gap-6">
+                    <div className="max-w-2xl">
+                      <span className="inline-flex items-center gap-2 rounded-full bg-amber-500/20 border border-amber-400/40 px-3 py-1 text-xs font-extrabold text-amber-300">
+                        ⚡ Local Digital Ecosystem • MOUAU • ABSU • Umuahia
                       </span>
-                      <h1 className="mt-2 text-2xl font-extrabold text-white sm:text-3xl">
-                        Hi {user.name.split(" ")[0]}, explore your campus directory
+                      <h1 className="mt-3 text-2xl font-black text-white sm:text-4xl">
+                        Connecting People. Creating Opportunities. Building Communities.
                       </h1>
-                      <p className="mt-1 text-sm text-blue-200/80">
-                        Verified student directory, off-campus lodges, campus vendors & SUG updates.
+                      <p className="mt-2 text-sm text-blue-200/85">
+                        Buy & sell in the Marketplace, find part-time student jobs, RSVP to campus events, connect with people near you, or discover verified accommodation and scholarships.
                       </p>
+                      <div className="mt-4 flex flex-wrap gap-2.5">
+                        <button onClick={() => setActiveSection("marketplace")} className="rounded-xl bg-green-600 px-4 py-2.5 text-xs font-extrabold text-white shadow hover:bg-green-500">
+                          🛒 Explore Marketplace (2 Free Posts)
+                        </button>
+                        <button onClick={() => setActiveSection("jobs")} className="rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-extrabold text-white shadow hover:bg-blue-500">
+                          💼 Browse Jobs & Gigs
+                        </button>
+                        <button onClick={() => setActiveSection("connect")} className="rounded-xl border border-blue-400/40 bg-blue-950/60 px-4 py-2.5 text-xs font-extrabold text-blue-200 hover:bg-blue-900">
+                          🤝 People Near Me
+                        </button>
+                      </div>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 w-full lg:w-auto">
-                      <div className="rounded-2xl bg-slate-950/60 border border-blue-800/40 px-3.5 py-2.5">
-                        <p className="text-lg font-black text-blue-400">3,480</p>
-                        <p className="text-[10px] font-semibold uppercase text-blue-200/70">Active Students</p>
+
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-2">
+                      <div className="rounded-2xl bg-slate-950/70 border border-blue-800/50 p-3.5">
+                        <p className="text-xl font-black text-blue-400">3,480+</p>
+                        <p className="text-[11px] text-blue-200/75">Verified Users</p>
                       </div>
-                      <div className="rounded-2xl bg-slate-950/60 border border-blue-800/40 px-3.5 py-2.5">
-                        <p className="text-lg font-black text-amber-400">142</p>
-                        <p className="text-[10px] font-semibold uppercase text-blue-200/70">Verified Lodges</p>
+                      <div className="rounded-2xl bg-slate-950/70 border border-blue-800/50 p-3.5">
+                        <p className="text-xl font-black text-amber-400">{marketplace.length + jobs.length}</p>
+                        <p className="text-[11px] text-blue-200/75">Active Products & Jobs</p>
                       </div>
-                      <div className="rounded-2xl bg-slate-950/60 border border-blue-800/40 px-3.5 py-2.5">
-                        <p className="text-lg font-black text-emerald-400">89</p>
-                        <p className="text-[10px] font-semibold uppercase text-blue-200/70">Campus Vendors</p>
+                      <div className="rounded-2xl bg-slate-950/70 border border-blue-800/50 p-3.5">
+                        <p className="text-xl font-black text-emerald-400">{events.length}</p>
+                        <p className="text-[11px] text-blue-200/75">Upcoming Events</p>
                       </div>
-                      <div className="rounded-2xl bg-slate-950/60 border border-blue-800/40 px-3.5 py-2.5">
-                        <p className="text-lg font-black text-purple-300">14</p>
-                        <p className="text-[10px] font-semibold uppercase text-blue-200/70">Live Events</p>
+                      <div className="rounded-2xl bg-slate-950/70 border border-blue-800/50 p-3.5">
+                        <p className="text-xl font-black text-purple-300">{communities.length}</p>
+                        <p className="text-[11px] text-blue-200/75">Active Communities</p>
                       </div>
                     </div>
                   </div>
                 </section>
 
-                {/* Switch Views Based on General Navbar Selection */}
-                {activeSection === "students" ? (
-                  <StudentDirectoryView search={search} />
-                ) : activeSection === "colleges" ? (
-                  <CollegesView onSelectCollege={(code) => { setSearch(code); setActiveSection("students"); }} />
-                ) : (
-                  <>
-                    {/* Filter tabs for Feed / Lodges / Vendors / Events */}
-                    <nav className="no-scrollbar -mx-4 mb-6 flex gap-2 overflow-x-auto px-4 pb-1" aria-label="Filter listings">
-                      {TABS.map((t) => {
-                        const active = activeTab === t.key;
-                        return (
-                          <button key={t.key} onClick={() => setActiveTab(t.key)}
-                            className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition ${
-                              active
-                                ? "border-blue-500 bg-blue-600 text-white shadow-lg shadow-blue-950/50"
-                                : "border-blue-800/60 bg-slate-900/80 text-blue-200 hover:border-amber-400/60 hover:text-amber-300"
-                            }`}>
-                            {t.label}
-                            <span className={`rounded-full px-2 text-xs ${active ? "bg-white/20 text-white" : "bg-blue-950 text-blue-300"}`}>
-                              {counts[t.key]}
+                {/* A. Sponsored Posts & Promotions */}
+                <section>
+                  <div className="mb-3 flex items-center justify-between">
+                    <div>
+                      <span className="text-[11px] font-extrabold uppercase tracking-wider text-amber-400">Promoted & Reviewed</span>
+                      <h2 className="text-lg font-extrabold text-white">📢 Sponsored Campus Promotions</h2>
+                    </div>
+                    <button onClick={() => setAdModalOpen(true)} className="text-xs font-bold text-amber-400 hover:underline">
+                      + Advertise Your Business →
+                    </button>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {ads.map((ad) => (
+                      <div key={ad.id} className="flex flex-col justify-between rounded-2xl border border-amber-400/40 bg-gradient-to-b from-slate-900/95 to-blue-950/80 p-4 shadow-lg">
+                        <div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="rounded-full bg-amber-500 px-2.5 py-0.5 text-[10px] font-black uppercase text-slate-950">
+                              Sponsored • {ad.category}
                             </span>
+                            <span className="text-[11px] text-blue-300">{ad.reach}</span>
+                          </div>
+                          <h3 className="mt-2.5 text-base font-bold text-white">{ad.title}</h3>
+                          <p className="mt-1 text-xs text-blue-200/80">{ad.description}</p>
+                          <p className="mt-2 text-[11px] text-amber-300/90">📍 Target: {ad.target} • ⏱ {ad.duration}</p>
+                        </div>
+                        <a href={`https://wa.me/${formatWhatsApp(ad.whatsapp)}`} target="_blank" rel="noopener noreferrer"
+                           className="mt-4 inline-flex items-center justify-center rounded-xl bg-amber-500 py-2 text-xs font-extrabold text-slate-950 hover:bg-amber-400">
+                          Contact Advertiser on WhatsApp
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* Campus News & Official Announcements */}
+                <section>
+                  <div className="mb-3 flex items-center justify-between">
+                    <h2 className="text-lg font-extrabold text-white">📰 Campus News & Official Announcements</h2>
+                    <button onClick={() => setActiveSection("bloggers")} className="text-xs font-bold text-blue-300 hover:underline">
+                      Read Verified Bloggers →
+                    </button>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {CAMPUS_NEWS.map((n) => (
+                      <div key={n.id} className="rounded-2xl border border-blue-800/50 bg-slate-900/85 p-4">
+                        <div className="flex items-center justify-between">
+                          <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${
+                            n.official ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40" : "bg-blue-500/20 text-blue-300"
+                          }`}>
+                            {n.official ? "✔ Officially Confirmed" : n.type}
+                          </span>
+                          <span className="text-[11px] text-blue-300/70">{n.date}</span>
+                        </div>
+                        <h3 className="mt-2 font-bold text-white text-sm">{n.title}</h3>
+                        <p className="mt-1 text-xs text-blue-200/75">{n.summary}</p>
+                        <p className="mt-2 text-[11px] font-semibold text-amber-400">📍 {n.campus}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* Highlight Preview Row: Featured Job + Top Event + Roommate */}
+                <section className="grid gap-5 lg:grid-cols-3">
+                  {/* Featured Sales Attendant Job */}
+                  <div className="rounded-2xl border border-blue-700/60 bg-slate-900/90 p-5">
+                    <span className="rounded-full bg-blue-600 px-2.5 py-1 text-[10px] font-bold uppercase text-white">Featured Job</span>
+                    <h3 className="mt-2 text-base font-extrabold text-white">{jobs[0].title}</h3>
+                    <p className="mt-1 text-xs text-blue-200/80">{jobs[0].description}</p>
+                    <p className="mt-2 text-xs text-amber-400 font-semibold">📍 {jobs[0].location} • {jobs[0].type}</p>
+                    <button onClick={() => setActiveSection("jobs")} className="mt-4 w-full rounded-xl bg-blue-600 py-2.5 text-xs font-bold text-white hover:bg-blue-500">
+                      View Full Job Details & Apply →
+                    </button>
+                  </div>
+
+                  {/* Top Event with RSVP */}
+                  <div className="rounded-2xl border border-blue-700/60 bg-slate-900/90 p-5">
+                    <span className="rounded-full bg-amber-500 px-2.5 py-1 text-[10px] font-bold uppercase text-slate-950">Top Event</span>
+                    <h3 className="mt-2 text-base font-extrabold text-white">{events[0].title}</h3>
+                    <p className="mt-1 text-xs text-blue-200/80">{events[0].date} • {events[0].venue}</p>
+                    <p className="mt-2 text-xs font-bold text-emerald-400">🔥 {events[0].interested} Interested • {events[0].going} Going</p>
+                    <button onClick={() => setActiveSection("events")} className="mt-4 w-full rounded-xl bg-green-600 py-2.5 text-xs font-bold text-white hover:bg-green-500">
+                      RSVP & Set Event Reminder →
+                    </button>
+                  </div>
+
+                  {/* Featured Scholarship */}
+                  <div className="rounded-2xl border border-blue-700/60 bg-slate-900/90 p-5">
+                    <span className="rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-bold uppercase text-white">Scholarship Alert</span>
+                    <h3 className="mt-2 text-base font-extrabold text-white">{opportunities[0].title}</h3>
+                    <p className="mt-1 text-xs text-blue-200/80">{opportunities[0].eligibility}</p>
+                    <p className="mt-2 text-xs font-bold text-amber-400">⏳ {opportunities[0].deadline} • {opportunities[0].grant}</p>
+                    <button onClick={() => setActiveSection("opportunities")} className="mt-4 w-full rounded-xl bg-blue-600 py-2.5 text-xs font-bold text-white hover:bg-blue-500">
+                      View All Scholarships & SIWES →
+                    </button>
+                  </div>
+                </section>
+              </>
+            )}
+
+            {/* ====================================================================
+               SECTION 2: CONNECT WITH OTHER PEOPLE (PEOPLE NEAR ME & INTERESTS)
+               ==================================================================== */}
+            {activeSection === "connect" && (
+              <section>
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-blue-800/50 bg-blue-950/60 p-5">
+                  <div>
+                    <span className="text-xs font-bold uppercase text-amber-400">Social Discovery • People Near Me</span>
+                    <h2 className="text-2xl font-extrabold text-white">🤝 Connect With Students & Young People</h2>
+                    <p className="text-xs text-blue-200/80">Discover people around MOUAU, ABSU & Umuahia by shared interests, follow profiles or send a message.</p>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {["All", "Programming", "Football", "Entrepreneurship", "UI/UX Design", "Photography"].map((tag) => (
+                      <button key={tag} onClick={() => setInterestFilter(tag)}
+                        className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
+                          interestFilter === tag ? "bg-blue-600 text-white" : "bg-slate-900 text-blue-200 hover:bg-blue-900"
+                        }`}>
+                        #{tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {people
+                    .filter((p) => matchesFilter({ location: p.school }, [p.name, p.dept, p.bio, ...p.interests]))
+                    .filter((p) => interestFilter === "All" || p.interests.includes(interestFilter))
+                    .map((person) => (
+                      <div key={person.id} className="flex flex-col justify-between rounded-2xl border border-blue-800/50 bg-slate-900/90 p-5 shadow-lg">
+                        <div>
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-800 font-black text-white">
+                                {initials(person.name)}
+                                {person.online && <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-slate-900 bg-emerald-400" />}
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-1.5">
+                                  <h3 className="font-bold text-white">{person.name}</h3>
+                                  {person.verified && <span className="text-xs text-emerald-400" title="Verified Student">✔</span>}
+                                </div>
+                                <p className="text-xs text-blue-300/80">{person.dept}</p>
+                                <p className="text-[11px] text-amber-400">📍 {person.school}</p>
+                              </div>
+                            </div>
+                            <button onClick={() => handleReport(person.name, "User Profile")} className="text-xs text-blue-400/60 hover:text-rose-400" title="Report or block user">
+                              🚩
+                            </button>
+                          </div>
+                          <p className="mt-3 text-xs text-blue-100/85">{person.bio}</p>
+                          <div className="mt-3 flex flex-wrap gap-1.5">
+                            {person.interests.map((i) => (
+                              <span key={i} className="rounded-full bg-blue-950/90 border border-blue-800/50 px-2.5 py-0.5 text-[11px] text-blue-200">
+                                #{i}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="mt-5 flex gap-2">
+                          <button
+                            onClick={() => {
+                              setFollowedUsers((f) => ({ ...f, [person.id]: !f[person.id] }));
+                              setToast(followedUsers[person.id] ? `Unfollowed ${person.name}` : `Following ${person.name}!`);
+                            }}
+                            className={`flex-1 rounded-xl py-2 text-xs font-bold transition ${
+                              followedUsers[person.id] ? "bg-emerald-600/20 border border-emerald-500/40 text-emerald-300" : "bg-blue-600 text-white hover:bg-blue-500"
+                            }`}>
+                            {followedUsers[person.id] ? "✔ Following" : "+ Follow"}
                           </button>
-                        );
-                      })}
-                    </nav>
-
-                    {/* Feed */}
-                    {filtered.length > 0 ? (
-                      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                        {filtered.map((l) => <ListingCard key={l.id} listing={l} />)}
+                          <button
+                            onClick={() => setDmTarget(person)}
+                            className="flex-1 rounded-xl border border-blue-700 bg-blue-950/60 py-2 text-xs font-bold text-blue-200 hover:bg-blue-900">
+                            💬 Message
+                          </button>
+                        </div>
                       </div>
-                    ) : (
-                      <div className="rounded-2xl border border-dashed border-blue-800/60 bg-slate-900/50 px-6 py-16 text-center">
-                        <p className="text-4xl">🔍</p>
-                        <p className="mt-3 font-semibold text-white">No listings found</p>
-                        <p className="mt-1 text-sm text-blue-200/70">Try another search, or be the first to post one.</p>
+                    ))}
+                </div>
+              </section>
+            )}
+
+            {/* ====================================================================
+               SECTION 3: BUY & SELL MARKETPLACE (FIRST 2 LISTINGS FREE)
+               ==================================================================== */}
+            {activeSection === "marketplace" && (
+              <section>
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-blue-800/50 bg-blue-950/60 p-5">
+                  <div>
+                    <span className="text-xs font-bold uppercase text-amber-400">Student & Community Commerce</span>
+                    <h2 className="text-2xl font-extrabold text-white">🛒 Buy & Sell Marketplace</h2>
+                    <p className="text-xs text-blue-200/80">
+                      First <strong>2 approved product listings are FREE</strong> ({freePostsLeft} free left). Subsequent or promoted product listings are paid.
+                    </p>
+                  </div>
+                  <button onClick={() => setPostModalOpen(true)} className="rounded-xl bg-green-600 px-4 py-2.5 text-xs font-extrabold text-white shadow hover:bg-green-500">
+                    + Sell an Item ({freePostsLeft} Free Left)
+                  </button>
+                </div>
+
+                {/* Category pills */}
+                <div className="no-scrollbar mb-5 flex gap-2 overflow-x-auto pb-1">
+                  {["All", "Electronics", "Furniture", "Home Appliances", "Books", "Fashion", "Food", "Beauty"].map((cat) => (
+                    <button key={cat} onClick={() => setMarketCategory(cat)}
+                      className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-bold transition ${
+                        marketCategory === cat ? "bg-blue-600 text-white" : "bg-slate-900 text-blue-200 border border-blue-800/50"
+                      }`}>
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {marketplace
+                    .filter((item) => matchesFilter(item, [item.name, item.category, item.description, item.seller]))
+                    .filter((item) => marketCategory === "All" || item.category === marketCategory)
+                    .map((item) => (
+                      <div key={item.id} className="flex flex-col justify-between rounded-2xl border border-blue-800/50 bg-slate-900/90 p-5 shadow-lg">
+                        <div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="rounded-full bg-amber-500 px-2.5 py-0.5 text-[10px] font-black uppercase text-slate-950">
+                              {item.category}
+                            </span>
+                            <span className="rounded-full bg-blue-950 border border-blue-700/60 px-2.5 py-0.5 text-[10px] font-bold text-blue-200">
+                              Condition: {item.condition}
+                            </span>
+                          </div>
+                          <h3 className="mt-3 text-base font-bold text-white">{item.name}</h3>
+                          <p className="mt-1 text-xs text-blue-200/75">{item.description}</p>
+                          <p className="mt-3 text-xl font-black text-amber-400">{item.price}</p>
+                          <div className="mt-2 flex items-center justify-between text-xs text-blue-300/80">
+                            <span>👤 {item.seller} {item.verified && "✔"}</span>
+                            <span>📍 {item.location}</span>
+                          </div>
+                        </div>
+                        <div className="mt-4 flex gap-2">
+                          <a href={`https://wa.me/${formatWhatsApp(item.whatsapp)}?text=${encodeURIComponent(`Hi! I want to buy "${item.name}" (${item.price}) listed on MOUAU Connect Marketplace.`) }`}
+                             target="_blank" rel="noopener noreferrer"
+                             className="flex-1 rounded-xl bg-green-600 py-2.5 text-center text-xs font-bold text-white hover:bg-green-500">
+                            Chat Seller on WhatsApp
+                          </a>
+                          <button onClick={() => handleReport(item.name, "Marketplace")} className="rounded-xl border border-blue-800 px-3 text-xs text-blue-300 hover:text-rose-400" title="Report suspicious product">
+                            🚩
+                          </button>
+                        </div>
                       </div>
-                    )}
-                  </>
-                )}
-              </main>
+                    ))}
+                </div>
+              </section>
+            )}
 
-              {/* FAB */}
-              <button onClick={() => setModalOpen(true)} aria-label="Post a listing"
-                className="fixed bottom-6 right-6 z-40 flex h-14 items-center gap-2 rounded-full bg-green-600 px-4 font-semibold text-white shadow-2xl shadow-green-950/60 ring-4 ring-blue-400/20 transition hover:bg-green-500 active:scale-95 sm:px-6">
-                <PlusIcon className="h-6 w-6" />
-                <span className="hidden sm:inline">Post a Listing</span>
-              </button>
+            {/* ====================================================================
+               SECTION 4: JOBS & GIGS (PART-TIME, FULL-TIME, REMOTE, FREELANCE)
+               ==================================================================== */}
+            {activeSection === "jobs" && (
+              <section>
+                {/* Safety Banner */}
+                <div className="mb-4 rounded-2xl border border-amber-400/50 bg-amber-500/10 p-4 text-xs text-amber-200">
+                  🛡️ <strong>Job Safety Rule:</strong> Never pay anyone money to secure a job or interview. All employers on MOUAU Connect must provide verifiable contact information. Report any suspicious job ad immediately.
+                </div>
 
-              <PostListingModal open={modalOpen} onClose={closeModal} onSubmit={handlePost} />
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-wrap gap-2">
+                    {["All", "Part-time", "Full-time", "Remote", "Gigs & Freelance"].map((t) => (
+                      <button key={t} onClick={() => setJobTypeFilter(t)}
+                        className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${
+                          jobTypeFilter === t ? "bg-blue-600 text-white" : "bg-slate-900 text-blue-200 border border-blue-800/50"
+                        }`}>
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                  <button onClick={() => setPostModalOpen(true)} className="rounded-xl bg-green-600 px-4 py-2 text-xs font-bold text-white">
+                    + Post a Job / Gig
+                  </button>
+                </div>
+
+                <div className="grid gap-5 md:grid-cols-2">
+                  {jobs
+                    .filter((j) => matchesFilter(j, [j.title, j.employer, j.description]))
+                    .filter((j) => jobTypeFilter === "All" || j.type === jobTypeFilter)
+                    .map((job) => (
+                      <div key={job.id} className={`flex flex-col justify-between rounded-2xl border p-5 shadow-lg ${
+                        job.featured ? "border-amber-400/60 bg-gradient-to-b from-slate-900 to-blue-950/90" : "border-blue-800/50 bg-slate-900/90"
+                      }`}>
+                        <div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="rounded-full bg-blue-600 px-3 py-0.5 text-[11px] font-bold text-white">
+                              {job.type}
+                            </span>
+                            <span className="text-xs font-semibold text-amber-400">Deadline: {job.deadline}</span>
+                          </div>
+                          <h3 className="mt-3 text-lg font-black text-white">{job.title}</h3>
+                          <p className="text-xs font-semibold text-blue-300">
+                            🏢 {job.employer} {job.verified && <span className="text-emerald-400">✔ Verified Employer</span>}
+                          </p>
+                          <p className="mt-2 text-xs text-blue-100/85">{job.description}</p>
+
+                          <div className="mt-3 rounded-xl bg-slate-950/70 p-3 text-xs">
+                            <p className="font-bold text-blue-200">Requirements:</p>
+                            <ul className="mt-1 list-disc pl-4 space-y-0.5 text-blue-200/80">
+                              {job.requirements.map((r) => <li key={r}>{r}</li>)}
+                            </ul>
+                          </div>
+
+                          <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-blue-200">
+                            <div>📍 <strong>Location:</strong> {job.location}</div>
+                            <div>⏰ <strong>Hours:</strong> {job.hours}</div>
+                            <div className="col-span-2 text-amber-400 font-bold">💰 Salary: {job.salary}</div>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 flex gap-2">
+                          <a href={`https://wa.me/${formatWhatsApp(job.whatsapp)}?text=${encodeURIComponent(`Hello, I am applying for the "${job.title}" position advertised on MOUAU Connect.`) }`}
+                             target="_blank" rel="noopener noreferrer"
+                             className="flex-1 rounded-xl bg-green-600 py-2.5 text-center text-xs font-bold text-white hover:bg-green-500">
+                            Apply Directly via MOUAU Connect (WhatsApp)
+                          </a>
+                          <button onClick={() => handleReport(job.title, "Jobs")} className="rounded-xl border border-blue-800 px-3 text-xs text-blue-300 hover:text-rose-400">
+                            🚩 Report
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </section>
+            )}
+
+            {/* ====================================================================
+               SECTION 5: EVENTS WITH "I'M INTERESTED" & "GOING" RSVPs
+               ==================================================================== */}
+            {activeSection === "events" && (
+              <section>
+                <div className="mb-5 rounded-2xl border border-blue-800/50 bg-blue-950/60 p-5">
+                  <span className="text-xs font-bold uppercase text-amber-400">Parties, Conferences, Fellowships & Seminars</span>
+                  <h2 className="text-2xl font-extrabold text-white">🎉 Campus Events & Live RSVPs</h2>
+                  <p className="text-xs text-blue-200/80">Click "I'm Interested" or "Going" to RSVP and receive an automatic event reminder.</p>
+                </div>
+
+                <div className="grid gap-5 md:grid-cols-2">
+                  {events.filter((ev) => matchesFilter(ev, [ev.title, ev.venue, ev.description])).map((ev) => {
+                    const userChoice = rsvpState[ev.id];
+                    return (
+                      <div key={ev.id} className="flex flex-col justify-between rounded-2xl border border-blue-800/50 bg-slate-900/90 p-5 shadow-lg">
+                        <div>
+                          <div className="flex items-center justify-between">
+                            <span className="rounded-full bg-amber-500 px-3 py-0.5 text-[10px] font-black uppercase text-slate-950">
+                              {ev.category}
+                            </span>
+                            <span className="text-xs font-extrabold text-emerald-400">Entry: {ev.fee}</span>
+                          </div>
+                          <h3 className="mt-3 text-lg font-extrabold text-white">{ev.title}</h3>
+                          <p className="mt-1 text-xs font-semibold text-blue-300">🗓 {ev.date} • 📍 {ev.venue}</p>
+                          <p className="mt-0.5 text-[11px] text-blue-300/70">Organiser: {ev.organiser}</p>
+                          <p className="mt-2.5 text-xs text-blue-100/85">{ev.description}</p>
+                        </div>
+
+                        <div className="mt-4 space-y-2.5">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleRsvp(ev.id, "interested")}
+                              className={`flex-1 rounded-xl py-2 text-xs font-bold transition ${
+                                userChoice === "interested"
+                                  ? "bg-amber-500 text-slate-950"
+                                  : "border border-blue-700 bg-blue-950/70 text-blue-200 hover:bg-blue-900"
+                              }`}>
+                              ⭐ I'm Interested ({ev.interested})
+                            </button>
+                            <button
+                              onClick={() => handleRsvp(ev.id, "going")}
+                              className={`flex-1 rounded-xl py-2 text-xs font-bold transition ${
+                                userChoice === "going"
+                                  ? "bg-emerald-600 text-white"
+                                  : "border border-blue-700 bg-blue-950/70 text-blue-200 hover:bg-blue-900"
+                              }`}>
+                              🔔 Going ({ev.going})
+                            </button>
+                          </div>
+                          <a href={`https://wa.me/${formatWhatsApp(ev.whatsapp)}`} target="_blank" rel="noopener noreferrer"
+                             className="block w-full rounded-xl bg-blue-600 py-2 text-center text-xs font-bold text-white hover:bg-blue-500">
+                            Contact Organiser / Register
+                          </a>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* ====================================================================
+               SECTION 6: OPPORTUNITIES (SCHOLARSHIPS, SIWES, GRANTS, BOOTCAMPS)
+               ==================================================================== */}
+            {activeSection === "opportunities" && (
+              <section>
+                <div className="mb-5 rounded-2xl border border-blue-800/50 bg-blue-950/60 p-5">
+                  <span className="text-xs font-bold uppercase text-amber-400">Verified Academic & Career Growth</span>
+                  <h2 className="text-2xl font-extrabold text-white">🎓 Scholarships, SIWES, Internships & Grants</h2>
+                  <p className="text-xs text-blue-200/80">Every opportunity includes eligibility requirements, original source and expiry countdown so outdated links never circulate.</p>
+                </div>
+
+                <div className="grid gap-5 md:grid-cols-2">
+                  {opportunities.map((op) => (
+                    <div key={op.id} className="flex flex-col justify-between rounded-2xl border border-blue-800/50 bg-slate-900/90 p-5 shadow-lg">
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <span className="rounded-full bg-emerald-500/20 border border-emerald-400/40 px-3 py-0.5 text-xs font-bold text-emerald-300">
+                            {op.type}
+                          </span>
+                          <span className="rounded-full bg-amber-500/20 px-2.5 py-0.5 text-xs font-bold text-amber-300">
+                            ⏳ {op.deadline}
+                          </span>
+                        </div>
+                        <h3 className="mt-3 text-base font-extrabold text-white">{op.title}</h3>
+                        <p className="mt-1 text-xs text-blue-300">Source: {op.source}</p>
+                        <p className="mt-2 text-xs text-blue-100/85"><strong>Eligibility:</strong> {op.eligibility}</p>
+                        <p className="mt-2 text-sm font-black text-amber-400">Award / Benefit: {op.grant}</p>
+                      </div>
+                      <a href={op.link} target="_blank" rel="noopener noreferrer"
+                         className="mt-4 block w-full rounded-xl bg-blue-600 py-2.5 text-center text-xs font-bold text-white hover:bg-blue-500">
+                        Visit Official Application Portal ↗
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ====================================================================
+               SECTION 7: SERVICES DIRECTORY
+               ==================================================================== */}
+            {activeSection === "services" && (
+              <section>
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-blue-800/50 bg-blue-950/60 p-5">
+                  <div>
+                    <span className="text-xs font-bold uppercase text-amber-400">Monetize Your Skills</span>
+                    <h2 className="text-2xl font-extrabold text-white">🛠️ Student & Local Services Directory</h2>
+                    <p className="text-xs text-blue-200/80">Hire verified students for web design, hairdressing, barbing, photography, laundry, repairs & private tutoring.</p>
+                  </div>
+                  <button onClick={() => setPostModalOpen(true)} className="rounded-xl bg-green-600 px-4 py-2.5 text-xs font-bold text-white">
+                    + List Your Skill / Service
+                  </button>
+                </div>
+
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {services.filter((s) => matchesFilter(s, [s.title, s.category, s.provider, s.description])).map((sv) => (
+                    <div key={sv.id} className="flex flex-col justify-between rounded-2xl border border-blue-800/50 bg-slate-900/90 p-5 shadow-lg">
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <span className="rounded-full bg-blue-600 px-2.5 py-0.5 text-[10px] font-bold text-white">{sv.category}</span>
+                          <span className="text-xs font-bold text-amber-400">{sv.rating}</span>
+                        </div>
+                        <h3 className="mt-3 text-base font-bold text-white">{sv.title}</h3>
+                        <p className="mt-1 text-xs text-blue-300">Provider: {sv.provider} {sv.verified && "✔"}</p>
+                        <p className="mt-2 text-xs text-blue-100/80">{sv.description}</p>
+                        <p className="mt-3 text-sm font-extrabold text-emerald-400">{sv.price}</p>
+                      </div>
+                      <a href={`https://wa.me/${formatWhatsApp(sv.whatsapp)}`} target="_blank" rel="noopener noreferrer"
+                         className="mt-4 block w-full rounded-xl bg-green-600 py-2.5 text-center text-xs font-bold text-white hover:bg-green-500">
+                        Book Service on WhatsApp
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ====================================================================
+               SECTION 8: ACCOMMODATION & ROOMMATES
+               ==================================================================== */}
+            {activeSection === "accommodation" && (
+              <section>
+                <div className="mb-4 rounded-2xl border border-amber-400/40 bg-amber-500/10 p-4 text-xs text-amber-200">
+                  🏘️ <strong>Accommodation Anti-Scam Notice:</strong> Physically inspect any lodge or self-con at 82 Bus Stop, Ndoro, Ahiaeke or Uturu and verify the caretaker/landlord before paying rent.
+                </div>
+
+                <div className="grid gap-5 sm:grid-cols-2">
+                  {accommodation.filter((a) => matchesFilter(a, [a.title, a.area, a.description])).map((acc) => (
+                    <div key={acc.id} className="flex flex-col justify-between rounded-2xl border border-blue-800/50 bg-slate-900/90 p-5 shadow-lg">
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <span className={`rounded-full px-3 py-0.5 text-[11px] font-bold ${
+                            acc.type.includes("Roommate") ? "bg-amber-500 text-slate-950" : "bg-blue-600 text-white"
+                          }`}>
+                            {acc.type}
+                          </span>
+                          <span className="text-xs text-blue-300">📍 {acc.area}</span>
+                        </div>
+                        <h3 className="mt-3 text-base font-extrabold text-white">{acc.title}</h3>
+                        <p className="mt-1 text-xs text-blue-100/80">{acc.description}</p>
+                        <p className="mt-3 text-lg font-black text-amber-400">{acc.price}</p>
+                      </div>
+                      <div className="mt-4 flex gap-2">
+                        <a href={`https://wa.me/${formatWhatsApp(acc.whatsapp)}`} target="_blank" rel="noopener noreferrer"
+                           className="flex-1 rounded-xl bg-green-600 py-2.5 text-center text-xs font-bold text-white hover:bg-green-500">
+                          Chat Caretaker / Roommate
+                        </a>
+                        <button onClick={() => handleReport(acc.title, "Accommodation")} className="rounded-xl border border-blue-800 px-3 text-xs text-blue-300 hover:text-rose-400">
+                          🚩 Report
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ====================================================================
+               SECTION 9: COMMUNITIES & GROUPS
+               ==================================================================== */}
+            {activeSection === "communities" && (
+              <section>
+                <div className="mb-5 rounded-2xl border border-blue-800/50 bg-blue-950/60 p-5">
+                  <span className="text-xs font-bold uppercase text-amber-400">Interest-Based Hubs</span>
+                  <h2 className="text-2xl font-extrabold text-white">💬 Campus Communities & Groups</h2>
+                  <p className="text-xs text-blue-200/80">Join communities for programming, football, entrepreneurship, freelancers and campus life.</p>
+                </div>
+
+                <div className="grid gap-5 md:grid-cols-2">
+                  {communities.map((c) => (
+                    <div key={c.id} className="flex flex-col justify-between rounded-2xl border border-blue-800/50 bg-slate-900/90 p-5">
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <span className="rounded-full bg-blue-600/30 border border-blue-500/40 px-2.5 py-0.5 text-xs font-bold text-blue-200">{c.category}</span>
+                          <span className="text-xs font-bold text-amber-400">👥 {c.members} Members</span>
+                        </div>
+                        <h3 className="mt-3 text-lg font-extrabold text-white">{c.name}</h3>
+                        <p className="text-xs text-blue-300">Admin: {c.admin}</p>
+                        <p className="mt-2 text-xs text-blue-100/80">{c.description}</p>
+                        <div className="mt-3 rounded-xl bg-slate-950/80 p-3 text-xs text-emerald-300">
+                          📌 <strong>Latest Discussion:</strong> {c.latestPost}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setJoinedGroups((g) => ({ ...g, [c.id]: !g[c.id] }));
+                          setToast(joinedGroups[c.id] ? `Left ${c.name}` : `Joined ${c.name}!`);
+                        }}
+                        className={`mt-4 w-full rounded-xl py-2.5 text-xs font-bold transition ${
+                          joinedGroups[c.id] ? "bg-emerald-600/20 border border-emerald-500/40 text-emerald-300" : "bg-blue-600 text-white hover:bg-blue-500"
+                        }`}>
+                        {joinedGroups[c.id] ? "✔ Joined Community" : "+ Join Community"}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ====================================================================
+               SECTION 10: VERIFIED & POPULAR BLOGGERS
+               ==================================================================== */}
+            {activeSection === "bloggers" && (
+              <section>
+                <div className="mb-5 rounded-2xl border border-blue-800/50 bg-blue-950/60 p-5">
+                  <span className="text-xs font-bold uppercase text-amber-400">Campus Journalism & Insights</span>
+                  <h2 className="text-2xl font-extrabold text-white">✍️ Verified & Popular Bloggers</h2>
+                  <p className="text-xs text-blue-200/80">
+                    <strong>Verified Bloggers</strong> are identity-reviewed by our team. <strong>Popular Bloggers</strong> earn their badge through consistent reader engagement—never just by paying.
+                  </p>
+                </div>
+
+                <div className="grid gap-5 md:grid-cols-3">
+                  {bloggers.map((b) => (
+                    <article key={b.id} className="flex flex-col justify-between rounded-2xl border border-blue-800/50 bg-slate-900/90 p-5">
+                      <div>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="rounded-full bg-emerald-500/20 border border-emerald-400/40 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300">
+                            ✔ {b.badge}
+                          </span>
+                          {b.popular && (
+                            <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-300">
+                              🔥 Popular
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="mt-3 text-base font-extrabold text-white">{b.title}</h3>
+                        <p className="mt-1 text-xs text-blue-300">By {b.author} • {b.time} • {b.reads}</p>
+                        <p className="mt-2.5 text-xs text-blue-100/80">{b.excerpt}</p>
+                      </div>
+                      <button
+                        onClick={() => setToast(`Following ${b.author}! You'll be notified of new articles.`)}
+                        className="mt-4 w-full rounded-xl border border-blue-600 bg-blue-600/20 py-2 text-xs font-bold text-blue-200 hover:bg-blue-600 hover:text-white">
+                        + Follow Blogger
+                      </button>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ====================================================================
+               SECTION 11: FOOD & RESTAURANTS DIRECTORY
+               ==================================================================== */}
+            {activeSection === "food" && (
+              <section>
+                <div className="mb-5 rounded-2xl border border-blue-800/50 bg-blue-950/60 p-5">
+                  <span className="text-xs font-bold uppercase text-amber-400">Daily Campus Dining</span>
+                  <h2 className="text-2xl font-extrabold text-white">🍲 Food & Restaurants Directory</h2>
+                  <p className="text-xs text-blue-200/80">Explore menus, opening hours and direct WhatsApp contacts for restaurants and food vendors around MOUAU & ABSU.</p>
+                </div>
+
+                <div className="grid gap-5 md:grid-cols-3">
+                  {food.map((f) => (
+                    <div key={f.id} className="flex flex-col justify-between rounded-2xl border border-blue-800/50 bg-slate-900/90 p-5">
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-amber-400">{f.rating}</span>
+                          <span className="text-xs text-emerald-400">🕒 {f.hours}</span>
+                        </div>
+                        <h3 className="mt-2 text-base font-extrabold text-white">{f.name}</h3>
+                        <p className="text-xs text-blue-300">📍 {f.location}</p>
+                        <p className="mt-2 text-xs text-blue-100/85"><strong>Menu Highlights:</strong> {f.specialty}</p>
+                        <p className="mt-2 text-sm font-black text-amber-400">{f.priceRange}</p>
+                      </div>
+                      <a href={`https://wa.me/${formatWhatsApp(f.whatsapp)}`} target="_blank" rel="noopener noreferrer"
+                         className="mt-4 block w-full rounded-xl bg-green-600 py-2.5 text-center text-xs font-bold text-white hover:bg-green-500">
+                        View Menu / Order on WhatsApp
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ====================================================================
+               SECTION 12: LOST & FOUND
+               ==================================================================== */}
+            {activeSection === "lostfound" && (
+              <section>
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-blue-800/50 bg-blue-950/60 p-5">
+                  <div>
+                    <span className="text-xs font-bold uppercase text-amber-400">Community Help</span>
+                    <h2 className="text-2xl font-extrabold text-white">🔍 Lost & Found Board</h2>
+                    <p className="text-xs text-blue-200/80">Report lost student ID cards, wallets, phones or keys—or help return a found item safely.</p>
+                  </div>
+                  <button onClick={() => setPostModalOpen(true)} className="rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-extrabold text-slate-950">
+                    + Report Lost / Found Item
+                  </button>
+                </div>
+
+                <div className="grid gap-5 md:grid-cols-3">
+                  {lostFound.map((lf) => (
+                    <div key={lf.id} className="flex flex-col justify-between rounded-2xl border border-blue-800/50 bg-slate-900/90 p-5">
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <span className={`rounded-full px-3 py-0.5 text-[10px] font-black uppercase ${
+                            lf.status === "LOST" ? "bg-rose-500 text-white" : "bg-emerald-500 text-slate-950"
+                          }`}>
+                            {lf.status}
+                          </span>
+                          <span className="text-xs text-blue-300">{lf.date}</span>
+                        </div>
+                        <h3 className="mt-3 text-base font-bold text-white">{lf.title}</h3>
+                        <p className="mt-1 text-xs text-amber-400">📍 {lf.location}</p>
+                        <p className="mt-2 text-xs text-blue-100/80">{lf.description}</p>
+                      </div>
+                      <a href={`https://wa.me/${formatWhatsApp(lf.whatsapp)}`} target="_blank" rel="noopener noreferrer"
+                         className="mt-4 block w-full rounded-xl bg-blue-600 py-2.5 text-center text-xs font-bold text-white hover:bg-blue-500">
+                        Contact Owner / Finder
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ====================================================================
+               SECTION 13: WHAT'S NEW, FEATURE ROADMAP & SUGGEST A FEATURE
+               ==================================================================== */}
+            {activeSection === "roadmap" && (
+              <section className="space-y-6">
+                <div className="rounded-2xl border border-blue-800/50 bg-blue-950/60 p-5">
+                  <span className="text-xs font-bold uppercase text-amber-400">Actively Developed Beta Platform</span>
+                  <h2 className="text-2xl font-extrabold text-white">🚀 What's New, Feature Roadmap & Suggestions</h2>
+                  <p className="text-xs text-blue-200/80">
+                    Welcome to MOUAU Connect Beta. We're building a better community experience in stages based on real student feedback.
+                  </p>
+                </div>
+
+                {/* Roadmap Phases */}
+                <div className="grid gap-5 md:grid-cols-3">
+                  {ROADMAP_ITEMS.map((r) => (
+                    <div key={r.phase} className="rounded-2xl border border-blue-800/50 bg-slate-900/90 p-5">
+                      <span className={`rounded-full border px-3 py-0.5 text-xs font-bold ${r.color}`}>
+                        {r.status}
+                      </span>
+                      <h3 className="mt-3 text-base font-extrabold text-white">{r.phase}</h3>
+                      <ul className="mt-3 space-y-1.5 text-xs text-blue-200/85">
+                        {r.items.map((it) => <li key={it}>• {it}</li>)}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Suggest a Feature & Upvote */}
+                <div className="rounded-2xl border border-blue-800/50 bg-slate-900/90 p-5">
+                  <h3 className="text-lg font-extrabold text-white">💡 Suggest a Feature for MOUAU Connect</h3>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (!newSuggestion.trim()) return;
+                      setSuggestions((prev) => [{ id: Date.now(), text: newSuggestion.trim(), votes: 1 }, ...prev]);
+                      setNewSuggestion("");
+                      setToast("Thank you! Your feature suggestion is now live for community voting.");
+                    }}
+                    className="mt-3 flex flex-wrap gap-2">
+                    <input
+                      value={newSuggestion}
+                      onChange={(e) => setNewSuggestion(e.target.value)}
+                      placeholder="e.g. I would like MOUAU Connect to have a section for past exam tutorials…"
+                      className={`${inputCls} flex-1`}
+                    />
+                    <button type="submit" className="rounded-xl bg-green-600 px-5 py-2.5 text-xs font-extrabold text-white hover:bg-green-500">
+                      Submit Suggestion
+                    </button>
+                  </form>
+
+                  <div className="mt-4 space-y-2">
+                    {suggestions.map((sg) => (
+                      <div key={sg.id} className="flex items-center justify-between rounded-xl bg-slate-950/80 border border-blue-900/50 p-3">
+                        <span className="text-xs text-blue-100">{sg.text}</span>
+                        <button
+                          onClick={() => {
+                            setSuggestions((prev) => prev.map((x) => (x.id === sg.id ? { ...x, votes: x.votes + 1 } : x)));
+                            setToast("Upvoted feature suggestion!");
+                          }}
+                          className="shrink-0 rounded-lg bg-blue-600/30 border border-blue-500/40 px-3 py-1 text-xs font-bold text-amber-300 hover:bg-blue-600 hover:text-white">
+                          ▲ {sg.votes} Upvotes
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            )}
+          </main>
+
+          {/* Direct Message Modal */}
+          {dmTarget && (
+            <div className="fixed inset-0 z-[75] flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm" onClick={() => setDmTarget(null)}>
+              <div onClick={(e) => e.stopPropagation()} className="pop-in w-full max-w-md rounded-3xl border border-blue-700 bg-slate-900 p-6 shadow-2xl">
+                <h3 className="text-base font-extrabold text-white">💬 Message {dmTarget.name}</h3>
+                <p className="text-xs text-blue-300">{dmTarget.dept} • {dmTarget.school}</p>
+                <textarea
+                  rows={3}
+                  value={dmText}
+                  onChange={(e) => setDmText(e.target.value)}
+                  placeholder={`Say hi to ${dmTarget.name.split(" ")[0]}…`}
+                  className={`${inputCls} mt-3`}
+                />
+                <div className="mt-3 flex gap-2">
+                  <button
+                    onClick={() => {
+                      setToast(`Message sent to ${dmTarget.name}!`);
+                      setDmText("");
+                      setDmTarget(null);
+                    }}
+                    className="flex-1 rounded-xl bg-blue-600 py-2.5 text-xs font-bold text-white">
+                    Send In-App Message
+                  </button>
+                  <a
+                    href={`https://wa.me/${formatWhatsApp(dmTarget.whatsapp)}?text=${encodeURIComponent(dmText || `Hi ${dmTarget.name.split(" ")[0]}, connecting with you from MOUAU Connect!`) }`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="flex-1 rounded-xl bg-green-600 py-2.5 text-center text-xs font-bold text-white">
+                    Open WhatsApp
+                  </a>
+                </div>
+              </div>
             </div>
           )}
 
+          {/* Footer with Independent Platform Disclaimer */}
+          <footer className="border-t border-blue-900/60 bg-slate-950/90 py-6 text-center text-xs text-blue-300/70">
+            <p className="font-bold text-white">MOUAU Connect Beta — “Connecting People. Creating Opportunities. Building Communities.”</p>
+            <p className="mt-1">
+              Independent community-driven digital ecosystem serving students, young people & businesses around MOUAU, ABSU and surrounding communities.
+            </p>
+          </footer>
+
+          <UniversalPostModal />
+          <SponsoredAdModal />
+          <AdminDashboardModal />
           <Toast message={toast} />
-        </>
+        </div>
       );
     }
 
