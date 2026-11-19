@@ -275,56 +275,41 @@
       "w-full rounded-xl bg-slate-950/80 border border-blue-800/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40 transition";
 
     /* ---------------- MOUAU Admin Block Watermark + Slide-In Video Reel ---------------- */
+    const ADMIN_BLOCK_IMG = "./mouau-admin-block.jpg";
+
     const MOUAU_CAMPUS_SLIDES = [
       {
         title: "Michael Okpara University of Agriculture — Admin Block",
         subtitle: "Senate & Administrative Complex • Umudike",
         tag: "🏛️ MOUAU Admin Block",
-        image: "https://upload.wikimedia.org/wikipedia/en/1/11/University_Gate_of_Micheal_Okpara_University_of_Agriculture.jpg",
+        image: ADMIN_BLOCK_IMG,
         video: "https://assets.mixkit.co/videos/preview/mixkit-aerial-view-of-a-university-campus-41559-large.mp4",
       },
       {
-        title: "MOUAU Central Library & Academic Core",
-        subtitle: "Research, Innovation & Student Study Hub",
-        tag: "📚 Academic Excellence",
-        image: "https://upload.wikimedia.org/wikipedia/commons/5/56/Michael_Okpara_University_Library%2C_Imo_State_%28with_the_Library_annex_in_the_background.jpg",
+        title: "MOUAU Administrative Complex & Campus Core",
+        subtitle: "Connecting Students, Colleges & Opportunities Across Umudike",
+        tag: "📚 Academic & Admin Core",
+        image: ADMIN_BLOCK_IMG,
         video: "https://assets.mixkit.co/videos/preview/mixkit-students-walking-in-a-university-campus-4519-large.mp4",
       },
       {
         title: "MOUAU Student Entrepreneurship & Campus Life",
         subtitle: "Connecting Students, Vendors, Jobs & Lodges Across Umudike",
         tag: "⚡ Campus Community",
-        image: "https://mouau.edu.ng/wp-content/uploads/2022/03/students-reg-400x225.jpg",
+        image: ADMIN_BLOCK_IMG,
         video: "https://assets.mixkit.co/videos/preview/mixkit-young-people-studying-together-outside-4527-large.mp4",
       },
     ];
 
-    function AdminBlockWatermark({ opacity = "opacity-[0.13]" }) {
+    function AdminBlockWatermark({ opacity = "opacity-[0.22]" }) {
       return (
         <div className={`pointer-events-none absolute inset-0 overflow-hidden select-none ${opacity}`} aria-hidden="true">
           <img
-            src="https://upload.wikimedia.org/wikipedia/en/1/11/University_Gate_of_Micheal_Okpara_University_of_Agriculture.jpg"
-            alt=""
-            className="ken-burns h-full w-full object-cover object-center mix-blend-luminosity"
+            src={ADMIN_BLOCK_IMG}
+            alt="MOUAU Admin Block Watermark"
+            className="ken-burns h-full w-full object-cover object-center"
           />
-          {/* Architectural Admin Block Silhouette & Official Crest Watermark SVG */}
-          <svg viewBox="0 0 1200 420" fill="none" xmlns="http://www.w3.org/2000/svg"
-               className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[115%] max-w-none text-white/30">
-            <rect x="80" y="210" width="1040" height="190" stroke="currentColor" strokeWidth="3" fill="currentColor" fillOpacity="0.08" />
-            <rect x="370" y="110" width="460" height="290" stroke="currentColor" strokeWidth="4" fill="currentColor" fillOpacity="0.12" />
-            <polygon points="340,110 600,25 860,110" stroke="currentColor" strokeWidth="4" fill="currentColor" fillOpacity="0.15" />
-            {/* Admin Block Pillars & Windows */}
-            {[420, 480, 540, 600, 660, 720, 780].map((x) => (
-              <line key={x} x1={x} y1="115" x2={x} y2="395" stroke="currentColor" strokeWidth="5" />
-            ))}
-            {[140, 200, 260, 880, 940, 1000].map((x) => (
-              <rect key={x} x={x} y="245" width="36" height="55" stroke="currentColor" strokeWidth="2.5" />
-            ))}
-            <text x="600" y="96" textAnchor="middle" fill="currentColor" fontSize="22" fontWeight="900" letterSpacing="6">
-              MOUAU ADMIN BLOCK • UMUDIKE
-            </text>
-          </svg>
-          <div className="absolute inset-0 bg-gradient-to-t from-[#051a06] via-[#051a06]/65 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#051a06] via-[#051a06]/60 to-[#051a06]/30" />
         </div>
       );
     }
@@ -355,6 +340,12 @@
         <div className={`relative overflow-hidden rounded-2xl border border-blue-700/60 bg-[#051a06] shadow-2xl ${compact ? "h-48 sm:h-56" : "h-56 sm:h-64"}`}>
           {/* Slide-In Motion Video + Admin Block Watermark Layer */}
           <div key={slideIdx} className="video-slide-in relative h-full w-full">
+            {/* Base Admin Block Photo Watermark (Always Visible) */}
+            <img
+              src={bgImg}
+              alt="Michael Okpara University of Agriculture Admin Block"
+              className="ken-burns h-full w-full object-cover opacity-85"
+            />
             <video
               key={current.video}
               src={current.video}
@@ -363,15 +354,9 @@
               loop
               muted
               playsInline
-              className="h-full w-full object-cover opacity-55"
+              className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-35 mix-blend-screen"
             />
-            {/* Persistent MOUAU Admin Block Watermark Overlay */}
-            <img
-              src={bgImg}
-              alt="Michael Okpara University of Agriculture Admin Block Watermark"
-              className="ken-burns pointer-events-none absolute inset-0 h-full w-full object-cover opacity-35 mix-blend-screen"
-            />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#051a06] via-[#051a06]/50 to-transparent" />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#051a06] via-[#051a06]/40 to-transparent" />
           </div>
 
           {/* Top Watermark Stamp & Slide Controls */}
