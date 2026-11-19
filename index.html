@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-neutral-900">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CampusConnect MOUAU</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    :root { color-scheme: dark; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { scrollbar-width: none; }
+    *:focus-visible { outline: 2px solid #16a34a; outline-offset: 2px; }
+    /* Stop Chrome's blue/yellow autofill background */
+    input:-webkit-autofill {
+      -webkit-box-shadow: 0 0 0 1000px #171717 inset;
+      -webkit-text-fill-color: #f5f5f5;
+    }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    .toast-in { animation: slideUp .25s ease-out; }
+    @keyframes pop { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
+    .pop-in { animation: pop .2s ease-out; }
+  </style>
+</head>
+<body class="bg-neutral-900 text-neutral-100 antialiased">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useCallback } = React;
+
+    /* ---------------- Config & mock data ---------------- */
+    const CATEGORIES = {
+      hostel: { label: "Hostel", icon: "🏠", gradient: "from-green-800 via-green-900 to-neutral-900" },
+      vendor: { label: "Vendor", icon: "🛍️", gradient: "from-amber-700 via-amber-900 to-neutral-900" },
+      event:  { label: "Event",  icon: "🎉", gradient: "from-emerald-700 via-green-900 to-neutral-900" },
+    };
+
+    const TABS = [
+      { key: "all",    label: "All" },
+      { key: "hostel", label: "Hostels & Lodges" },
+      { key: "vendor", label: "Student Vendors" },
+      { key: "event",  label: "Campus Events" },
+    ];
+
+    const DEPARTMENTS = ["COLPHYS", "COLNAS", "COLENG", "COLAMRUD", "COLANIM", "COLCRAN", "COLFAST", "COLMAS", "COLVET", "COLED"];
+
+    const INITIAL_LISTINGS = [
+      { id: 1, category: "event",  title: "🏆 SUG Award & Gala Night 2026", price: "₦5,000 (Reg) / ₦15k (VIP)", location: "Convocation Arena", description: "The biggest night in MOUAU! Red carpet, student awards, live performances, comedy & after-party.", whatsapp: "2348011122233", image: null, isNew: true },
+      { id: 2, category: "hostel", title: "Self-con Lodge at 82 Bus Stop", price: "₦180,000/yr", location: "82 Bus Stop, Umudike", description: "Tiled self-contain with steady water, prepaid meter and fenced compound.", whatsapp: "2348012345678", image: null },
+      { id: 3, category: "vendor", title: "Umudike Gate Food Vendor – Mama Nkechi's Kitchen", price: "₦1,500/plate", location: "Main Gate", description: "Jollof, ofe owerri, abacha & fresh fish pepper soup daily.", whatsapp: "2348023456789", image: null },
+      { id: 4, category: "event",  title: "COLPHYS Freshers' Night & Mr/Miss COLPHYS", price: "₦2,000", location: "Main Auditorium", description: "Music, comedy, pageantry and awards for the new set. Dress code: Owambe.", whatsapp: "2348034567890", image: null },
+      { id: 5, category: "hostel", title: "Shared Room – Ikwuano Lodge", price: "₦95,000/yr", location: "Ndoro Junction", description: "2 per room, kitchen space, 5 mins trek to school.", whatsapp: "2348045678901", image: null },
+      { id: 6, category: "vendor", title: "Laptop & Phone Repairs", price: "From ₦3,000", location: "Library Complex", description: "Screen replacement, OS installs and charging port fixes.", whatsapp: "2348056789012", image: null },
+      { id: 7, category: "event",  title: "VC's Cup Inter-College Football Final", price: "Free", location: "MOUAU Main Stadium", description: "COLENG vs COLNAS live at the stadium! Halftime music, jersey giveaways and refreshments.", whatsapp: "2348067890123", image: null },
+      { id: 8, category: "vendor", title: "Campus Printing, Binding & Past Questions", price: "₦50/page", location: "COLNAS Building", description: "Project binding, past questions pack (100L–500L) and coloured prints.", whatsapp: "2348078901234", image: null },
+      { id: 9, category: "hostel", title: "Female Hostel Space – Okwuta", price: "₦120,000/yr", location: "Okwuta, Umudike", description: "Secure female-only lodge with 24/7 security and borehole.", whatsapp: "2348089012345", image: null },
+      { id: 10, category: "event", title: "MOUAU Rag Day & Carnival Parade", price: "₦1,000 (Kit)", location: "Starts at SUB Roundabout", description: "Costumes, brass band, and charity outreach across Umuahia & Umudike.", whatsapp: "2348091112223", image: null },
+      { id: 11, category: "hostel", title: "Executive Newly-Built Self-con – Ahiaeke", price: "₦250,000/yr", location: "Ahiaeke Layout", description: "POP ceiling, wardrobe, kitchen cabinet, solar security lights and steady borehole water.", whatsapp: "2348092223334", image: null },
+      { id: 12, category: "vendor", title: "Keke Campus Shuttle & Night Drops", price: "₦200 – ₦1,500", location: "Admin Block / Gate", description: "Fast drop to 82 Bus Stop, Ndoro, Ahiaeke or Umuahia town. Call for night pickups.", whatsapp: "2348093334445", image: null },
+      { id: 13, category: "vendor", title: "Thrift Plug, Lab Coats & Engineering Coveralls", price: "From ₦4,500", location: "SUB Shopping Complex", description: "Clean grade-A thrift tops, white lab coats, boots and green khaki coveralls.", whatsapp: "2348094445556", image: null },
+      { id: 14, category: "event", title: "FYB Dinner & Final Year Jean Carnival", price: "₦7,000", location: "Villa Roy Hotel, Umuahia", description: "Sign-out week celebration, awards, DJ battle and dinner for graduating lions & lionesses.", whatsapp: "2348095556667", image: null },
+      { id: 15, category: "vendor", title: "24/7 Phone & Laptop Solar Charging Hub", price: "₦100 / device", location: "Behind Nelson Mandela Hostel", description: "Never run out of battery during exams. Fast-charge sockets and safe locker slots.", whatsapp: "2348096667778", image: null },
+    ];
+
+    /* ---------------- Helpers ---------------- */
+    const formatWhatsApp = (num) => {
+      const d = String(num).replace(/\D/g, "");
+      if (d.startsWith("234")) return d;
+      if (d.startsWith("0")) return "234" + d.slice(1);
+      return "234" + d;
+    };
+
+    const formatPrice = (raw) => {
+      const cleaned = raw.replace(/[₦,\s]/g, "");
+      return /^\d+$/.test(cleaned) ? `₦${Number(cleaned).toLocaleString("en-NG")}` : raw.trim();
+    };
+
+    const initials = (name) =>
+      name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join("") || "ST";
+
+    const inputCls =
+      "w-full rounded-xl bg-neutral-900 border border-neutral-700 px-4 py-3 text-sm text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/40 transition";
+
+    /* ---------------- Icons ---------------- */
+    const Icon = ({ children, className = "h-5 w-5" }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+        {children}
+      </svg>
+    );
+    const SearchIcon = (p) => <Icon {...p}><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></Icon>;
+    const PlusIcon   = (p) => <Icon {...p}><path d="M5 12h14" /><path d="M12 5v14" /></Icon>;
+    const XIcon      = (p) => <Icon {...p}><path d="M18 6 6 18" /><path d="m6 6 12 12" /></Icon>;
+    const PinIcon    = (p) => <Icon {...p}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></Icon>;
+    const ChatIcon   = (p) => <Icon {...p}><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></Icon>;
+    const CheckIcon  = (p) => <Icon {...p}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><path d="m9 11 3 3L22 4" /></Icon>;
+    const UploadIcon = (p) => <Icon {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" x2="12" y1="3" y2="15" /></Icon>;
+
+    /* ---------------- Small UI pieces ---------------- */
+    function Logo() {
+      return (
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-600 font-black text-white shadow-lg shadow-green-900/40">
+            CC
+          </div>
+          <div className="leading-tight">
+            <p className="text-base font-extrabold tracking-tight text-white">CampusConnect</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-500">MOUAU</p>
+          </div>
+        </div>
+      );
+    }
+
+    function Field({ label, children }) {
+      return (
+        <label className="block">
+          <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-neutral-400">{label}</span>
+          {children}
+        </label>
+      );
+    }
+
+    function Toast({ message }) {
+      if (!message) return null;
+      return (
+        <div className="pointer-events-none fixed inset-x-0 bottom-24 z-[70] flex justify-center px-4">
+          <div role="status" className="toast-in flex items-center gap-3 rounded-xl border border-green-600/40 bg-neutral-800 px-4 py-3 text-sm font-medium text-white shadow-2xl">
+            <span className="text-green-500"><CheckIcon /></span>
+            {message}
+          </div>
+        </div>
+      );
+    }
+
+    /* ---------------- 1. Auth ---------------- */
+    function AuthScreen({ onAuth }) {
+      const [mode, setMode] = useState("signin");
+      const [form, setForm] = useState({ fullName: "", studentId: "", department: "", password: "" });
+      const [error, setError] = useState("");
+      const isSignup = mode === "signup";
+
+      const update = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+      const switchMode = (m) => { setMode(m); setError(""); };
+
+      const submit = (e) => {
+        e.preventDefault();
+        if (!form.studentId.trim() || !form.password) return setError("Please enter your Student ID and password.");
+        if (isSignup) {
+          if (!form.fullName.trim() || !form.department) return setError("Please fill in every field.");
+          if (form.password.length < 6) return setError("Password must be at least 6 characters.");
+        }
+        onAuth({
+          name: isSignup ? form.fullName.trim() : "MOUAU Student",
+          studentId: form.studentId.trim().toUpperCase(),
+          department: isSignup ? form.department : "",
+        });
+      };
+
+      return (
+        <main className="flex min-h-screen items-center justify-center bg-neutral-900 px-4 py-10">
+          <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,rgba(22,163,74,0.18),transparent_60%)]" />
+          <div className="pop-in relative w-full max-w-md rounded-3xl border border-neutral-700/60 bg-neutral-800 p-6 shadow-2xl sm:p-8">
+            <div className="mb-6 flex justify-center"><Logo /></div>
+            <h1 className="text-center text-2xl font-bold text-white">
+              {isSignup ? "Join your campus network" : "Welcome back"}
+            </h1>
+            <p className="mt-1 text-center text-sm text-neutral-400">
+              Lodges, vendors & events around Umudike — all in one place.
+            </p>
+
+            {/* Toggle */}
+            <div className="mt-6 grid grid-cols-2 rounded-xl bg-neutral-900 p-1">
+              {[["signin", "Sign In"], ["signup", "Create Account"]].map(([key, label]) => (
+                <button key={key} type="button" onClick={() => switchMode(key)}
+                  className={`rounded-lg py-2.5 text-sm font-semibold transition ${
+                    mode === key ? "bg-green-600 text-white shadow" : "text-neutral-400 hover:text-amber-400"
+                  }`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <form onSubmit={submit} className="mt-6 space-y-4" noValidate>
+              {isSignup && (
+                <Field label="Full Name">
+                  <input name="fullName" value={form.fullName} onChange={update} className={inputCls} placeholder="e.g. Tobechi Okafor" autoComplete="name" />
+                </Field>
+              )}
+              <Field label="MOUAU Student ID">
+                <input name="studentId" value={form.studentId} onChange={update} className={inputCls} placeholder="e.g. MOUAU/21/12345" autoComplete="username" />
+              </Field>
+              {isSignup && (
+                <Field label="Department / College">
+                  <select name="department" value={form.department} onChange={update} className={inputCls}>
+                    <option value="">Select your college</option>
+                    {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                </Field>
+              )}
+              <Field label="Password">
+                <input type="password" name="password" value={form.password} onChange={update} className={inputCls}
+                  placeholder="••••••••" autoComplete={isSignup ? "new-password" : "current-password"} />
+              </Field>
+
+              {error && (
+                <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-400">{error}</p>
+              )}
+
+              <button type="submit"
+                className="w-full rounded-xl bg-green-600 py-3 text-sm font-bold text-white shadow-lg shadow-green-900/40 transition hover:bg-green-500 active:scale-[.98]">
+                {isSignup ? "Create Account" : "Sign In"}
+              </button>
+            </form>
+
+            <p className="mt-5 text-center text-sm text-neutral-400">
+              {isSignup ? "Already have an account? " : "New to CampusConnect? "}
+              <button type="button" onClick={() => switchMode(isSignup ? "signin" : "signup")}
+                className="font-semibold text-amber-500 hover:text-amber-400">
+                {isSignup ? "Sign in" : "Create one"}
+              </button>
+            </p>
+          </div>
+        </main>
+      );
+    }
+
+    /* ---------------- 2. Header ---------------- */
+    function Header({ user, search, setSearch, onLogout }) {
+      const [menuOpen, setMenuOpen] = useState(false);
+      return (
+        <header className="sticky top-0 z-50 border-b border-neutral-800 bg-neutral-900/95 backdrop-blur">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3">
+            <Logo />
+
+            <div className="relative order-3 w-full md:order-2 md:mx-6 md:w-auto md:flex-1">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500">
+                <SearchIcon className="h-4 w-4" />
+              </span>
+              <input type="search" value={search} onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search lodges, vendors, events…" aria-label="Search listings"
+                className={`${inputCls} rounded-full bg-neutral-800 py-2.5 pl-10`} />
+            </div>
+
+            <div className="relative order-2 ml-auto md:order-3">
+              <button onClick={() => setMenuOpen((o) => !o)} aria-label="Open profile menu"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-neutral-900 ring-2 ring-amber-500/30 transition hover:ring-amber-500/60">
+                {initials(user.name)}
+              </button>
+              {menuOpen && (
+                <div className="pop-in absolute right-0 mt-2 w-60 rounded-2xl border border-neutral-700 bg-neutral-800 p-4 shadow-2xl">
+                  <p className="font-semibold text-white">{user.name}</p>
+                  <p className="text-xs text-neutral-400">{user.studentId}</p>
+                  {user.department && (
+                    <span className="mt-2 inline-block rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-semibold text-amber-400">
+                      {user.department}
+                    </span>
+                  )}
+                  <button onClick={onLogout}
+                    className="mt-4 w-full rounded-lg border border-neutral-700 py-2 text-sm font-medium text-neutral-300 transition hover:border-amber-500 hover:text-amber-400">
+                    Sign out
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </header>
+      );
+    }
+
+    /* ---------------- 3. Listing card ---------------- */
+    function ListingCard({ listing }) {
+      const cat = CATEGORIES[listing.category];
+      const waLink = `https://wa.me/${formatWhatsApp(listing.whatsapp)}?text=${encodeURIComponent(
+        `Hi! I saw your listing "${listing.title}" on CampusConnect MOUAU. Is it still available?`
+      )}`;
+
+      return (
+        <article className="group flex flex-col overflow-hidden rounded-2xl border border-neutral-700/60 bg-neutral-800 shadow-lg transition duration-200 hover:-translate-y-0.5 hover:border-green-600/50 hover:shadow-green-900/20">
+          <div className="relative aspect-[16/10] overflow-hidden">
+            {listing.image ? (
+              <img src={listing.image} alt={listing.title} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
+            ) : (
+              <div className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${cat.gradient}`}>
+                <span className="text-5xl drop-shadow-lg">{cat.icon}</span>
+              </div>
+            )}
+            <span className="absolute left-3 top-3 rounded-full bg-amber-500 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-neutral-900 shadow">
+              {cat.label}
+            </span>
+            {listing.isNew && (
+              <span className="absolute right-3 top-3 rounded-full bg-green-600 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow">
+                New
+              </span>
+            )}
+          </div>
+
+          <div className="flex flex-1 flex-col p-4">
+            <h3 className="line-clamp-2 text-base font-bold leading-snug text-white">{listing.title}</h3>
+            {listing.description && (
+              <p className="mt-1 line-clamp-2 text-sm text-neutral-400">{listing.description}</p>
+            )}
+
+            <div className="mt-auto flex items-center justify-between gap-2 pt-3">
+              <span className="text-lg font-extrabold text-amber-400">{listing.price}</span>
+              <span className="inline-flex max-w-[55%] items-center gap-1 rounded-full bg-neutral-900 px-2.5 py-1 text-xs text-neutral-300">
+                <PinIcon className="h-3.5 w-3.5 shrink-0 text-green-500" />
+                <span className="truncate">{listing.location}</span>
+              </span>
+            </div>
+
+            <a href={waLink} target="_blank" rel="noopener noreferrer"
+              className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-500 active:scale-[.98]">
+              <ChatIcon className="h-4 w-4" /> Chat on WhatsApp
+            </a>
+          </div>
+        </article>
+      );
+    }
+
+    /* ---------------- 4. Post listing modal ---------------- */
+    const EMPTY_FORM = { category: "hostel", title: "", price: "", location: "", description: "", whatsapp: "", image: null, imageName: "" };
+
+    function PostListingModal({ open, onClose, onSubmit }) {
+      const [form, setForm] = useState(EMPTY_FORM);
+      const [error, setError] = useState("");
+
+      // Reset whenever the modal closes
+      useEffect(() => { if (!open) { setForm(EMPTY_FORM); setError(""); } }, [open]);
+
+      // Escape to close + lock background scroll
+      useEffect(() => {
+        if (!open) return;
+        const onKey = (e) => e.key === "Escape" && onClose();
+        document.addEventListener("keydown", onKey);
+        document.body.style.overflow = "hidden";
+        return () => {
+          document.removeEventListener("keydown", onKey);
+          document.body.style.overflow = "";
+        };
+      }, [open, onClose]);
+
+      if (!open) return null;
+
+      const update = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+      const handleFile = (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        if (!file.type.startsWith("image/")) return setError("Please choose an image file.");
+        if (file.size > 5 * 1024 * 1024) return setError("Image must be under 5MB.");
+        const reader = new FileReader();
+        reader.onload = () => setForm((f) => ({ ...f, image: reader.result, imageName: file.name }));
+        reader.readAsDataURL(file);
+        setError("");
+      };
+
+      const submit = (e) => {
+        e.preventDefault();
+        const digits = form.whatsapp.replace(/\D/g, "");
+        if (!form.title.trim() || !form.price.trim() || !form.location.trim() || !digits)
+          return setError("Title, price, location and WhatsApp number are required.");
+        if (digits.length < 10 || digits.length > 13)
+          return setError("Enter a valid WhatsApp number, e.g. 08012345678.");
+
+        onSubmit({
+          id: Date.now(),
+          category: form.category,
+          title: form.title.trim(),
+          price: formatPrice(form.price),
+          location: form.location.trim(),
+          description: form.description.trim(),
+          whatsapp: digits,
+          image: form.image,
+          isNew: true,
+        });
+      };
+
+      return (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4"
+             onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="post-title">
+          <div onClick={(e) => e.stopPropagation()}
+               className="pop-in max-h-[92vh] w-full overflow-y-auto rounded-t-3xl border border-neutral-700 bg-neutral-800 p-6 shadow-2xl sm:max-w-lg sm:rounded-3xl">
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <h2 id="post-title" className="text-xl font-bold text-white">Post a Listing</h2>
+                <p className="text-sm text-neutral-400">Reach thousands of MOUAU students.</p>
+              </div>
+              <button onClick={onClose} aria-label="Close"
+                className="rounded-full p-2 text-neutral-400 transition hover:bg-neutral-700 hover:text-white">
+                <XIcon />
+              </button>
+            </div>
+
+            <form onSubmit={submit} className="space-y-4" noValidate>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Category">
+                  <select name="category" value={form.category} onChange={update} className={inputCls}>
+                    <option value="hostel">Hostel</option>
+                    <option value="vendor">Vendor</option>
+                    <option value="event">Event</option>
+                  </select>
+                </Field>
+                <Field label="Price (₦)">
+                  <input name="price" value={form.price} onChange={update} className={inputCls} placeholder="e.g. 150000 or Free" />
+                </Field>
+              </div>
+
+              <Field label="Title">
+                <input name="title" value={form.title} onChange={update} className={inputCls} placeholder="e.g. Self-con at Ndoro Junction" />
+              </Field>
+
+              <Field label="Location">
+                <input name="location" value={form.location} onChange={update} className={inputCls} placeholder="e.g. 82 Bus Stop, Umudike" />
+              </Field>
+
+              <Field label="Description">
+                <textarea name="description" value={form.description} onChange={update} rows={3}
+                  className={`${inputCls} resize-none`} placeholder="Key details students should know…" />
+              </Field>
+
+              <Field label="Image">
+                {form.image ? (
+                  <div className="relative overflow-hidden rounded-xl border border-neutral-700">
+                    <img src={form.image} alt="Preview" className="h-40 w-full object-cover" />
+                    <button type="button" onClick={() => setForm({ ...form, image: null, imageName: "" })}
+                      className="absolute right-2 top-2 rounded-full bg-black/70 p-1.5 text-white hover:bg-black" aria-label="Remove image">
+                      <XIcon className="h-4 w-4" />
+                    </button>
+                    <p className="truncate bg-neutral-900 px-3 py-1.5 text-xs text-neutral-400">{form.imageName}</p>
+                  </div>
+                ) : (
+                  <span className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-neutral-700 bg-neutral-900 px-4 py-6 text-center transition hover:border-green-600">
+                    <UploadIcon className="h-6 w-6 text-amber-500" />
+                    <span className="text-sm text-neutral-300">Tap to upload a photo</span>
+                    <span className="text-xs text-neutral-500">PNG or JPG, up to 5MB</span>
+                    <input type="file" accept="image/*" onChange={handleFile} className="sr-only" />
+                  </span>
+                )}
+              </Field>
+
+              <Field label="WhatsApp Number">
+                <input name="whatsapp" type="tel" value={form.whatsapp} onChange={update} className={inputCls} placeholder="e.g. 08012345678" />
+              </Field>
+
+              {error && (
+                <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-400">{error}</p>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={onClose}
+                  className="flex-1 rounded-xl border border-neutral-700 py-3 text-sm font-semibold text-neutral-300 transition hover:border-neutral-500">
+                  Cancel
+                </button>
+                <button type="submit"
+                  className="flex-1 rounded-xl bg-green-600 py-3 text-sm font-bold text-white shadow-lg shadow-green-900/40 transition hover:bg-green-500 active:scale-[.98]">
+                  Publish Listing
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    /* ---------------- App ---------------- */
+    function App() {
+      const [user, setUser] = useState(null);
+      const [listings, setListings] = useState(INITIAL_LISTINGS);
+      const [activeTab, setActiveTab] = useState("all");
+      const [search, setSearch] = useState("");
+      const [modalOpen, setModalOpen] = useState(false);
+      const [toast, setToast] = useState(null);
+
+      // Auto-dismiss toast
+      useEffect(() => {
+        if (!toast) return;
+        const t = setTimeout(() => setToast(null), 3000);
+        return () => clearTimeout(t);
+      }, [toast]);
+
+      const closeModal = useCallback(() => setModalOpen(false), []);
+
+      const counts = useMemo(() => {
+        const c = { all: listings.length, hostel: 0, vendor: 0, event: 0 };
+        listings.forEach((l) => c[l.category]++);
+        return c;
+      }, [listings]);
+
+      const filtered = useMemo(() => {
+        const q = search.trim().toLowerCase();
+        return listings.filter((l) =>
+          (activeTab === "all" || l.category === activeTab) &&
+          (!q || [l.title, l.location, l.description].some((f) => f && f.toLowerCase().includes(q)))
+        );
+      }, [listings, activeTab, search]);
+
+      const handleAuth = (u) => {
+        setUser(u);
+        setToast(`Welcome, ${u.name.split(" ")[0]}! 🎓`);
+      };
+
+      const handlePost = (listing) => {
+        setListings((prev) => [listing, ...prev]); // prepend
+        setModalOpen(false);
+        setActiveTab("all");
+        setSearch("");
+        setToast("Listing published successfully!");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      };
+
+      const handleLogout = () => {
+        setUser(null);
+        setActiveTab("all");
+        setSearch("");
+      };
+
+      return (
+        <>
+          {!user ? (
+            <AuthScreen onAuth={handleAuth} />
+          ) : (
+            <div className="min-h-screen bg-neutral-900">
+              <Header user={user} search={search} setSearch={setSearch} onLogout={handleLogout} />
+
+              <main className="mx-auto max-w-6xl px-4 pb-28 pt-6">
+                <section className="mb-5">
+                  <p className="text-sm font-medium text-amber-500">Umudike, Abia State</p>
+                  <h1 className="text-2xl font-bold text-white sm:text-3xl">
+                    Hi {user.name.split(" ")[0]}, find what you need on campus
+                  </h1>
+                </section>
+
+                {/* Filter tabs */}
+                <nav className="no-scrollbar -mx-4 mb-6 flex gap-2 overflow-x-auto px-4 pb-1" aria-label="Filter listings">
+                  {TABS.map((t) => {
+                    const active = activeTab === t.key;
+                    return (
+                      <button key={t.key} onClick={() => setActiveTab(t.key)}
+                        className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition ${
+                          active
+                            ? "border-green-600 bg-green-600 text-white shadow-lg shadow-green-900/40"
+                            : "border-neutral-700 bg-neutral-800 text-neutral-300 hover:border-amber-500/60 hover:text-amber-400"
+                        }`}>
+                        {t.label}
+                        <span className={`rounded-full px-2 text-xs ${active ? "bg-white/20" : "bg-neutral-900 text-neutral-400"}`}>
+                          {counts[t.key]}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </nav>
+
+                {/* Feed */}
+                {filtered.length > 0 ? (
+                  <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    {filtered.map((l) => <ListingCard key={l.id} listing={l} />)}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-neutral-700 bg-neutral-800/50 px-6 py-16 text-center">
+                    <p className="text-4xl">🔍</p>
+                    <p className="mt-3 font-semibold text-white">No listings found</p>
+                    <p className="mt-1 text-sm text-neutral-400">Try another search, or be the first to post one.</p>
+                  </div>
+                )}
+              </main>
+
+              {/* FAB */}
+              <button onClick={() => setModalOpen(true)} aria-label="Post a listing"
+                className="fixed bottom-6 right-6 z-40 flex h-14 items-center gap-2 rounded-full bg-green-600 px-4 font-semibold text-white shadow-2xl shadow-green-900/50 ring-4 ring-amber-500/20 transition hover:bg-green-500 active:scale-95 sm:px-6">
+                <PlusIcon className="h-6 w-6" />
+                <span className="hidden sm:inline">Post a Listing</span>
+              </button>
+
+              <PostListingModal open={modalOpen} onClose={closeModal} onSubmit={handlePost} />
+            </div>
+          )}
+
+          <Toast message={toast} />
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
