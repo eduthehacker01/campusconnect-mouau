@@ -316,7 +316,6 @@
 
     function CampusSlideVideoPlayer({ compact = false }) {
       const [slideIdx, setSlideIdx] = useState(0);
-      const [customWatermark, setCustomWatermark] = useState(null);
 
       useEffect(() => {
         const timer = setInterval(() => {
@@ -326,78 +325,26 @@
       }, []);
 
       const current = MOUAU_CAMPUS_SLIDES[slideIdx];
-      const bgImg = customWatermark || current.image;
-
-      const handleCustomImage = (e) => {
-        const file = e.target.files && e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = () => setCustomWatermark(reader.result);
-        reader.readAsDataURL(file);
-      };
 
       return (
-        <div className={`relative overflow-hidden rounded-2xl border border-blue-700/60 bg-[#051a06] shadow-2xl ${compact ? "h-48 sm:h-56" : "h-56 sm:h-64"}`}>
-          {/* Slide-In Motion Video + Admin Block Watermark Layer */}
+        <div className={`relative overflow-hidden rounded-2xl border border-blue-700/60 bg-[#051a06] shadow-2xl ${compact ? "h-52 sm:h-64" : "h-60 sm:h-72"}`}>
+          {/* Clean Picture + Slide-In Motion Layer (No Text Overlays) */}
           <div key={slideIdx} className="video-slide-in relative h-full w-full">
-            {/* Base Admin Block Photo Watermark (Always Visible) */}
             <img
-              src={bgImg}
+              src={current.image}
               alt="Michael Okpara University of Agriculture Admin Block"
-              className="ken-burns h-full w-full object-cover opacity-85"
+              className="ken-burns h-full w-full object-cover"
             />
             <video
               key={current.video}
               src={current.video}
-              poster={bgImg}
+              poster={current.image}
               autoPlay
               loop
               muted
               playsInline
-              className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-35 mix-blend-screen"
+              className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-25 mix-blend-screen"
             />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#051a06] via-[#051a06]/40 to-transparent" />
-          </div>
-
-          {/* Top Watermark Stamp & Slide Controls */}
-          <div className="absolute inset-x-3 top-3 flex items-center justify-between gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/55 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-amber-300 backdrop-blur-md">
-              <span className="h-2 w-2 rounded-full bg-[#1D9D21] animate-ping" />
-              {current.tag} • LIVE REEL
-            </span>
-            <label className="cursor-pointer rounded-full border border-white/20 bg-black/55 px-2.5 py-1 text-[10px] font-bold text-blue-200 backdrop-blur-md transition hover:border-amber-400 hover:text-white"
-                   title="Upload your own MOUAU Admin Block photo as watermark">
-              📷 Custom Admin Block Photo
-              <input type="file" accept="image/*" onChange={handleCustomImage} className="sr-only" />
-            </label>
-          </div>
-
-          {/* Center Watermark Seal */}
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <p className="select-none text-center text-xl sm:text-2xl font-black uppercase tracking-[0.35em] text-white/15">
-              MOUAU ADMIN BLOCK • UMUDIKE
-            </p>
-          </div>
-
-          {/* Bottom Caption & Slide Indicators */}
-          <div className="absolute inset-x-4 bottom-3 flex items-end justify-between gap-3">
-            <div>
-              <p className="text-xs sm:text-sm font-extrabold text-white drop-shadow">{current.title}</p>
-              <p className="text-[11px] text-blue-200/90">{current.subtitle}</p>
-            </div>
-            <div className="flex items-center gap-1.5">
-              {MOUAU_CAMPUS_SLIDES.map((_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setSlideIdx(i)}
-                  aria-label={`Slide ${i + 1}`}
-                  className={`h-2 rounded-full transition-all ${
-                    i === slideIdx ? "w-6 bg-amber-400" : "w-2 bg-white/40 hover:bg-white/75"
-                  }`}
-                />
-              ))}
-            </div>
           </div>
         </div>
       );
@@ -439,7 +386,8 @@
     const SIGNUP_INTERESTS = ["Programming", "Entrepreneurship", "Football", "Scholarships", "Fashion", "Agribusiness", "UI/UX Design", "Photography"];
 
     function AuthScreen({ onAuth }) {
-      const [mode, setMode] = useState("signin"); // 'signin' | 'signup' | 'forgot'
+      const [step, setStep] = useState("landing"); // 'landing' | 'auth'
+      const [mode, setMode] = useState("signup");  // 'signin' | 'signup' | 'forgot'
       const [role, setRole] = useState("Student");
       const [showPassword, setShowPassword] = useState(false);
       const [rememberMe, setRememberMe] = useState(true);
@@ -509,70 +457,115 @@
         onAuth(demoUser);
       };
 
-      return (
-        <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 sm:py-12">
-          {/* Full-screen MOUAU Admin Block Watermark Background */}
-          <AdminBlockWatermark opacity="opacity-[0.16]" />
-          <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,rgba(29,157,33,0.38),transparent_65%)]" />
+      /* ---------------- VIEW 1: DEDICATED LANDING PAGE ---------------- */
+      if (step === "landing") {
+        return (
+          <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 sm:py-12">
+            <AdminBlockWatermark opacity="opacity-[0.16]" />
+            <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,rgba(29,157,33,0.38),transparent_65%)]" />
 
-          <div className="pop-in relative grid w-full max-w-5xl overflow-hidden rounded-3xl border border-blue-700/60 bg-slate-900/90 shadow-2xl backdrop-blur-md lg:grid-cols-12">
-            {/* LEFT BRAND SHOWCASE PANEL WITH SLIDE-IN VIDEO & ADMIN BLOCK WATERMARK */}
-            <section className="relative flex flex-col justify-between overflow-hidden border-b border-blue-800/60 bg-gradient-to-br from-[#072909]/95 via-[#0d3f10]/95 to-[#051a06]/95 p-6 sm:p-8 lg:col-span-5 lg:border-b-0 lg:border-r">
+            <section className="pop-in relative w-full max-w-xl overflow-hidden rounded-3xl border border-blue-700/60 bg-gradient-to-br from-[#072909]/95 via-[#0d3f10]/95 to-[#051a06]/95 p-6 sm:p-8 shadow-2xl backdrop-blur-md">
               <AdminBlockWatermark opacity="opacity-[0.18]" />
+
               <div className="relative z-10">
-                <Logo />
-                <div className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-500/15 px-3 py-1 text-[11px] font-extrabold text-amber-300">
+                <div className="flex items-center justify-between gap-3">
+                  <Logo />
+                  <button
+                    type="button"
+                    onClick={() => { setMode("signin"); setStep("auth"); }}
+                    className="rounded-xl border border-blue-700/70 bg-slate-950/70 px-3.5 py-2 text-xs font-bold text-blue-200 transition hover:border-amber-400 hover:text-white">
+                    Sign In
+                  </button>
+                </div>
+
+                <div className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-500/15 px-3 py-1 text-[11px] font-extrabold text-amber-300">
                   🌟 MOUAU Campus Ecosystem • Umudike
                 </div>
-                <h1 className="mt-3 text-2xl font-black leading-tight text-white sm:text-3xl">
+
+                <h1 className="mt-3 text-3xl font-black leading-tight text-white sm:text-4xl">
                   Connecting People. Creating Opportunities. Building Communities.
                 </h1>
-                <p className="mt-2 text-xs leading-relaxed text-blue-100/80">
+                <p className="mt-2.5 text-xs sm:text-sm leading-relaxed text-blue-100/85">
                   The community-driven digital ecosystem where students, young people and businesses around MOUAU and surrounding communities find everything they need.
                 </p>
 
-                {/* Slide-In Campus Video Reel with MOUAU Admin Block Watermark */}
-                <div className="mt-4">
-                  <CampusSlideVideoPlayer compact />
+                {/* Clean MOUAU Admin Block Picture + Slide-In Video (No Text Inside Picture) */}
+                <div className="mt-5">
+                  <CampusSlideVideoPlayer />
+                </div>
+
+                {/* Primary CTA Buttons Leading to Sign Up / Sign In Page */}
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={() => { setMode("signup"); setStep("auth"); }}
+                    className="flex-1 rounded-2xl bg-[#1D9D21] py-3.5 px-5 text-sm font-extrabold text-white shadow-xl shadow-green-950/70 transition hover:bg-[#24b829] active:scale-[.99]">
+                    Get Started — Sign Up Free →
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setMode("signin"); setStep("auth"); }}
+                    className="rounded-2xl border border-blue-700/70 bg-slate-950/70 py-3.5 px-5 text-sm font-bold text-blue-100 transition hover:border-amber-400 hover:text-white">
+                    Already have an account? Sign In
+                  </button>
                 </div>
 
                 {/* 3 Core Pillars */}
                 <div className="mt-6 space-y-3">
-                  <div className="flex items-start gap-3 rounded-2xl border border-blue-800/50 bg-slate-950/50 p-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#1D9D21] text-base">🤝</span>
+                  <div className="flex items-start gap-3 rounded-2xl border border-blue-800/50 bg-slate-950/50 p-3.5">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#1D9D21] text-base">🤝</span>
                     <div>
-                      <p className="text-xs font-extrabold text-white">1. Connect With People Near You</p>
-                      <p className="text-[11px] text-blue-200/75">Discover students by college & interests, join communities and message directly.</p>
+                      <p className="text-xs sm:text-sm font-extrabold text-white">1. Connect With People Near You</p>
+                      <p className="text-[11px] sm:text-xs text-blue-200/75">Discover students by college & interests, join communities and message directly.</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 rounded-2xl border border-blue-800/50 bg-slate-950/50 p-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#1D9D21] text-base">💼</span>
+                  <div className="flex items-start gap-3 rounded-2xl border border-blue-800/50 bg-slate-950/50 p-3.5">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#1D9D21] text-base">💼</span>
                     <div>
-                      <p className="text-xs font-extrabold text-white">2. Unlock Jobs & Scholarships</p>
-                      <p className="text-[11px] text-blue-200/75">Verified part-time student jobs, remote gigs, SIWES placements & grants.</p>
+                      <p className="text-xs sm:text-sm font-extrabold text-white">2. Unlock Jobs & Scholarships</p>
+                      <p className="text-[11px] sm:text-xs text-blue-200/75">Verified part-time student jobs, remote gigs, SIWES placements & grants.</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 rounded-2xl border border-blue-800/50 bg-slate-950/50 p-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#1D9D21] text-base">🛒</span>
+                  <div className="flex items-start gap-3 rounded-2xl border border-blue-800/50 bg-slate-950/50 p-3.5">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#1D9D21] text-base">🛒</span>
                     <div>
-                      <p className="text-xs font-extrabold text-white">3. Promote Commerce (First 2 Listings FREE)</p>
-                      <p className="text-[11px] text-blue-200/75">Buy & sell gadgets, find roommates/lodges, offer skills or run sponsored ads.</p>
+                      <p className="text-xs sm:text-sm font-extrabold text-white">3. Promote Commerce (First 2 Listings FREE)</p>
+                      <p className="text-[11px] sm:text-xs text-blue-200/75">Buy & sell gadgets, find roommates/lodges, offer skills or run sponsored ads.</p>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Trust & Safety Footer inside Showcase */}
-              <div className="mt-6 rounded-2xl border border-blue-800/60 bg-slate-950/70 p-3.5 text-[11px] text-blue-200/80">
-                <p className="font-bold text-amber-400">🛡️ Protected by Day-One Moderation</p>
-                <p className="mt-0.5">
-                  Verified badges, anti-scam job protection, manual ad review and 1-click reporting keep our campus ecosystem safe.
-                </p>
+                {/* Trust & Safety Footer */}
+                <div className="mt-6 rounded-2xl border border-blue-800/60 bg-slate-950/70 p-3.5 text-[11px] text-blue-200/80">
+                  <p className="font-bold text-amber-400">🛡️ Protected by Day-One Moderation</p>
+                  <p className="mt-0.5">
+                    Verified badges, anti-scam job protection, manual ad review and 1-click reporting keep our campus ecosystem safe.
+                  </p>
+                </div>
               </div>
             </section>
+          </main>
+        );
+      }
 
-            {/* RIGHT AUTHENTICATION FORM PANEL */}
-            <section className="p-6 sm:p-8 lg:col-span-7">
+      /* ---------------- VIEW 2: DEDICATED SIGN UP / SIGN IN PAGE ---------------- */
+      return (
+        <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 sm:py-12">
+          <AdminBlockWatermark opacity="opacity-[0.16]" />
+          <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,rgba(29,157,33,0.38),transparent_65%)]" />
+
+          <div className="pop-in relative w-full max-w-xl overflow-hidden rounded-3xl border border-blue-700/60 bg-slate-900/95 shadow-2xl backdrop-blur-md">
+            <section className="p-6 sm:p-8">
+              <div className="mb-4 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setStep("landing")}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-blue-800/70 bg-slate-950/70 px-3 py-1.5 text-xs font-bold text-blue-200 transition hover:border-amber-400 hover:text-white">
+                  ← Back to Landing Page
+                </button>
+                <Logo />
+              </div>
+
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <h2 className="text-xl font-extrabold text-white sm:text-2xl">
