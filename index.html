@@ -582,12 +582,6 @@
           <div className="pop-in relative w-full max-w-xl overflow-hidden rounded-3xl border border-blue-700/60 bg-slate-900/95 shadow-2xl backdrop-blur-md">
             <section className="p-6 sm:p-8">
               <div className="mb-4 flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={() => setStep("landing")}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-blue-800/70 bg-slate-950/70 px-3 py-1.5 text-xs font-bold text-blue-200 transition hover:border-amber-400 hover:text-white">
-                  ← Back to Landing Page
-                </button>
                 <Logo />
               </div>
 
@@ -622,53 +616,6 @@
                       {label}
                     </button>
                   ))}
-                </div>
-              )}
-
-              {/* Quick 1-Click Demo Logins (For Fast Preview) */}
-              {mode === "signin" && (
-                <div className="mt-4 rounded-2xl border border-blue-800/50 bg-slate-950/60 p-3">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-amber-400">
-                    ⚡ Instant Demo Access (1-Click Sign In)
-                  </p>
-                  <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        quickDemoLogin({
-                          name: "Tobechi Okafor",
-                          studentId: "MOUAU/21/10482",
-                          department: "COLMAS (MOUAU)",
-                          role: "Student",
-                          verifiedStudent: true,
-                        })
-                      }
-                      className="flex items-center justify-between rounded-xl border border-blue-700/60 bg-blue-950/70 px-3 py-2 text-left text-xs transition hover:border-[#1D9D21] hover:bg-blue-900/60">
-                      <div>
-                        <p className="font-bold text-white">🎓 Tobechi Okafor</p>
-                        <p className="text-[10px] text-blue-200/80">MOUAU Student • COLMAS</p>
-                      </div>
-                      <span className="font-bold text-amber-400">Enter →</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        quickDemoLogin({
-                          name: "Chidinma Tech & Gadgets",
-                          studentId: "VENDOR/UMU/084",
-                          department: "MOUAU, Umudike",
-                          role: "Business",
-                          verifiedStudent: true,
-                        })
-                      }
-                      className="flex items-center justify-between rounded-xl border border-blue-700/60 bg-blue-950/70 px-3 py-2 text-left text-xs transition hover:border-[#1D9D21] hover:bg-blue-900/60">
-                      <div>
-                        <p className="font-bold text-white">🛍️ Chidinma Gadgets</p>
-                        <p className="text-[10px] text-blue-200/80">Verified Vendor • 2 Free Ads</p>
-                      </div>
-                      <span className="font-bold text-amber-400">Enter →</span>
-                    </button>
-                  </div>
                 </div>
               )}
 
