@@ -45,6 +45,7 @@
   <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root { color-scheme: dark; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -78,8 +79,12 @@
     const { useState, useEffect, useMemo, useRef } = React;
 
     /* ============================================================================
-       1. NAVIGATION & PLATFORM DATA (MOUAU & Umudike + SURROUNDING COMMUNITIES)
+       1. SUPABASE CLIENT, NAVIGATION & PLATFORM DATA (MOUAU & Umudike)
        ============================================================================ */
+    const SUPABASE_URL = "https://hrmfpqhpyhfcgutminkj.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhybWZwcWhweWhmY2d1dG1pbmtqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUzMzE2MDgsImV4cCI6MjExMDkwNzYwOH0.Y8W31UHhCPu6Nr3g6SSQk-GzKHm4jwrNgEtuYIwgzdw";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     const ADMIN_EMAIL = "your-email@gmail.com";
 
     const INITIAL_KYC_QUEUE = [
@@ -454,10 +459,13 @@
       const [resendTimer, setResendTimer] = useState(60);
       const otpRefs = useRef([]);
 
-      // Step 3: KYC Upload state
+      // Step 3: KYC Upload state + Supabase Auth User ID
       const [kycDocType, setKycDocType] = useState("MOUAU Student ID Card");
       const [kycImage, setKycImage] = useState(null);
+      const [kycFile, setKycFile] = useState(null);
       const [kycFileName, setKycFileName] = useState("");
+      const [authUserId, setAuthUserId] = useState(null);
+      const [loading, setLoading] = useState(false);
 
       const [error, setError] = useState("");
       const [resetSent, setResetSent] = useState(false);
@@ -495,13 +503,22 @@
         return () => clearInterval(timer);
       }, [isSignup, signupStep, resendTimer]);
 
-      const sendOtpCode = () => {
-        const code = String(Math.floor(100000 + Math.random() * 900000));
-        setGeneratedOtp(code);
+      const sendOtpCode = async () => {
+        setError("");
         setOtpDigits(["", "", "", "", "", ""]);
         setResendTimer(60);
-        if (setToast) {
-          setToast(`📩 Demo Gmail OTP for ${form.email}: ${code}`);
+        try {
+          const { error: resendErr } = await supabase.auth.resend({
+            type: "signup",
+            email: form.email.trim().toLowerCase(),
+          });
+          if (resendErr) {
+            setError(resendErr.message);
+          } else if (setToast) {
+            setToast(`📩 New 6-digit verification code sent to ${form.email.trim().toLowerCase()}!`);
+          }
+        } catch (err) {
+          setError(err.message || "Failed to resend OTP.");
         }
         setTimeout(() => {
           if (otpRefs.current[0]) otpRefs.current[0].focus();
@@ -542,6 +559,7 @@
           setError("Please upload an image file (JPG/PNG) of your Student ID Card or Course Form.");
           return;
         }
+        setKycFile(file);
         const reader = new FileReader();
         reader.onload = () => {
           setKycImage(reader.result);
@@ -551,36 +569,71 @@
         reader.readAsDataURL(file);
       };
 
-      const submit = (e) => {
+      const submit = async (e) => {
         e.preventDefault();
         setError("");
 
         if (mode === "forgot") {
           if (!form.studentId.trim() && !form.email.trim()) {
-            return setError("Enter your Student ID, Gmail or phone number to reset your password.");
+            return setError("Enter your Gmail address to reset your password.");
           }
+          const targetEmail = (form.email.trim() || form.studentId.trim()).toLowerCase();
+          setLoading(true);
+          const { error: resetErr } = await supabase.auth.resetPasswordForEmail(targetEmail);
+          setLoading(false);
+          if (resetErr) return setError(resetErr.message);
           setResetSent(true);
           return;
         }
 
         if (!isSignup) {
-          // SIGN IN FLOW
+          // 4. SUPABASE SIGN IN FLOW: supabase.auth.signInWithPassword()
           if (!form.studentId.trim() || !form.password) {
-            return setError("Please enter your Gmail / Student ID and Password.");
+            return setError("Please enter your Gmail address and Password.");
           }
-          const rawId = form.studentId.trim();
-          const emailVal = rawId.includes("@") ? rawId.toLowerCase() : (form.email.trim().toLowerCase() || `${rawId.toLowerCase().replace(/[^a-z0-9]/g, "")}@gmail.com`);
-          const userProfile = {
-            name: rawId.includes("@") ? rawId.split("@")[0] : "Tobechi Okafor",
+          const rawInput = form.studentId.trim().toLowerCase();
+          const emailVal = rawInput.includes("@") ? rawInput : `${rawInput.replace(/[^a-z0-9]/g, "")}@gmail.com`;
+
+          setLoading(true);
+          const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
             email: emailVal,
-            studentId: rawId.toUpperCase(),
-            department: form.department || "CAERSE",
-            role,
+            password: form.password,
+          });
+
+          if (signInErr) {
+            setLoading(false);
+            return setError(signInErr.message);
+          }
+
+          // Fetch profile from `profiles` table
+          let profileRow = null;
+          if (signInData?.user?.id) {
+            const { data: pData } = await supabase
+              .from("profiles")
+              .select("*")
+              .eq("id", signInData.user.id)
+              .maybeSingle();
+            profileRow = pData;
+          }
+          setLoading(false);
+
+          const userProfile = {
+            id: signInData?.user?.id,
+            name: profileRow?.full_name || signInData?.user?.user_metadata?.full_name || emailVal.split("@")[0],
+            email: signInData?.user?.email || emailVal,
+            studentId: profileRow?.matric_number || rawInput.toUpperCase(),
+            college: profileRow?.college || "CAERSE",
+            department: profileRow
+              ? `${profileRow.college || ""} • ${profileRow.department || ""}`.replace(/^ • | • $/g, "")
+              : "CAERSE",
+            role: profileRow?.role || role,
             interests: selectedInterests,
-            verifiedStudent: true,
-            kycStatus: "Verified",
+            verifiedStudent: profileRow?.kyc_status === "approved",
+            kycStatus: profileRow?.kyc_status || "pending",
+            kycImage: profileRow?.kyc_image_url || null,
             rememberMe,
           };
+
           try {
             localStorage.setItem("mouau_connect_user", JSON.stringify(userProfile));
           } catch (_) {}
@@ -588,7 +641,7 @@
           return;
         }
 
-        // SIGN UP 3-STEP FLOW
+        // ================= 1. SIGN-UP STEP 1: supabase.auth.signUp() =================
         if (signupStep === 1) {
           if (!form.fullName.trim()) return setError("Please enter your Full Name.");
           if (!form.email.trim() || !form.email.toLowerCase().includes("@")) {
@@ -599,55 +652,166 @@
           if (form.password.length < 6) return setError("Password must be at least 6 characters.");
           if (!form.agreedTerms) return setError("Please agree to the MOUAU Connect community safety rules.");
 
+          setLoading(true);
+          const cleanEmail = form.email.trim().toLowerCase();
+          const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+            email: cleanEmail,
+            password: form.password,
+            options: {
+              data: {
+                full_name: form.fullName.trim(),
+                matric_number: form.studentId.trim().toUpperCase(),
+                college: form.college,
+                department: form.department,
+                role,
+              },
+            },
+          });
+          setLoading(false);
+
+          if (signUpErr) {
+            return setError(signUpErr.message);
+          }
+
+          if (signUpData?.user?.id) {
+            setAuthUserId(signUpData.user.id);
+          }
+
+          setOtpDigits(["", "", "", "", "", ""]);
+          setResendTimer(60);
           setSignupStep(2);
-          sendOtpCode();
+          if (setToast) {
+            setToast(`📩 6-digit verification code sent to ${cleanEmail}! Check your Gmail inbox.`);
+          }
+          setTimeout(() => {
+            if (otpRefs.current[0]) otpRefs.current[0].focus();
+          }, 80);
           return;
         }
 
+        // ================= 2. SIGN-UP STEP 2 (OTP): supabase.auth.verifyOtp() =================
         if (signupStep === 2) {
-          const entered = otpDigits.join("");
-          if (entered.length < 6) return setError("Please enter all 6 digits of your Gmail OTP code.");
-          if (generatedOtp && entered !== generatedOtp) {
-            return setError(`Invalid OTP code. (Demo code is ${generatedOtp})`);
+          const token = otpDigits.join("");
+          if (token.length < 6) return setError("Please enter all 6 digits of the OTP sent to your Gmail.");
+
+          setLoading(true);
+          const cleanEmail = form.email.trim().toLowerCase();
+          const { data: otpData, error: otpErr } = await supabase.auth.verifyOtp({
+            email: cleanEmail,
+            token,
+            type: "signup",
+          });
+          setLoading(false);
+
+          if (otpErr) {
+            return setError(otpErr.message);
+          }
+
+          if (otpData?.user?.id) {
+            setAuthUserId(otpData.user.id);
+          }
+          if (setToast) {
+            setToast("✔ Gmail OTP verified! Now upload your MOUAU Student ID Card or Course Form.");
           }
           setSignupStep(3);
           return;
         }
 
+        // ================= 3. SIGN-UP STEP 3 (KYC): Upload to `kyc-ids` & save to `profiles` =================
         if (signupStep === 3) {
-          if (!kycImage) {
+          if (!kycFile && !kycImage) {
             return setError("Please upload a photo of your MOUAU Student ID Card or Course Form for KYC verification.");
           }
-          const userProfile = {
-            name: form.fullName.trim(),
-            email: form.email.trim().toLowerCase(),
-            studentId: form.studentId.trim().toUpperCase(),
-            college: form.college || "CAERSE",
-            department: `${form.college || "CAERSE"} • ${form.department || "Agribusiness and Management"}`,
-            role,
-            interests: selectedInterests,
-            verifiedStudent: false,
-            kycStatus: "Pending Admin KYC Review",
-            kycDocType,
-            kycImage,
-            rememberMe: true,
-          };
-          if (onSubmitKyc) {
-            onSubmitKyc({
-              id: "kyc-" + Date.now(),
-              fullName: userProfile.name,
-              email: userProfile.email,
-              matricNo: userProfile.studentId,
-              department: userProfile.department,
-              docType: kycDocType,
-              submittedAt: "Just now",
-              idPhoto: kycImage,
-            });
-          }
+
+          setLoading(true);
           try {
-            localStorage.setItem("mouau_connect_user", JSON.stringify(userProfile));
-          } catch (_) {}
-          onAuth(userProfile);
+            const { data: userData } = await supabase.auth.getUser();
+            const uid = userData?.user?.id || authUserId || crypto.randomUUID();
+            const cleanEmail = form.email.trim().toLowerCase();
+            let publicKycUrl = kycImage;
+
+            if (kycFile) {
+              const ext = (kycFile.name.split(".").pop() || "jpg").toLowerCase();
+              const filePath = `${uid}/${Date.now()}-kyc.${ext}`;
+              const { error: uploadErr } = await supabase.storage
+                .from("kyc-ids")
+                .upload(filePath, kycFile, { upsert: true });
+
+              if (uploadErr) {
+                setLoading(false);
+                return setError(`KYC Storage Upload Error: ${uploadErr.message}`);
+              }
+
+              const { data: urlData } = supabase.storage
+                .from("kyc-ids")
+                .getPublicUrl(filePath);
+
+              if (urlData?.publicUrl) {
+                publicKycUrl = urlData.publicUrl;
+              }
+            }
+
+            const profileRecord = {
+              id: uid,
+              full_name: form.fullName.trim(),
+              email: cleanEmail,
+              matric_number: form.studentId.trim().toUpperCase(),
+              college: form.college || "CAERSE",
+              department: form.department || "Agribusiness and Management",
+              kyc_image_url: publicKycUrl,
+              kyc_status: "pending",
+            };
+
+            const { error: profileErr } = await supabase
+              .from("profiles")
+              .upsert(profileRecord, { onConflict: "id" });
+
+            if (profileErr) {
+              setLoading(false);
+              return setError(`Profile Save Error: ${profileErr.message}`);
+            }
+
+            setLoading(false);
+
+            const userProfile = {
+              id: uid,
+              name: profileRecord.full_name,
+              email: profileRecord.email,
+              studentId: profileRecord.matric_number,
+              college: profileRecord.college,
+              department: `${profileRecord.college} • ${profileRecord.department}`,
+              role,
+              interests: selectedInterests,
+              verifiedStudent: false,
+              kycStatus: "pending",
+              kycDocType,
+              kycImage: publicKycUrl,
+              rememberMe: true,
+            };
+
+            if (onSubmitKyc) {
+              onSubmitKyc({
+                id: uid,
+                fullName: profileRecord.full_name,
+                email: profileRecord.email,
+                matricNo: profileRecord.matric_number,
+                college: profileRecord.college,
+                department: `${profileRecord.college} • ${profileRecord.department}`,
+                docType: kycDocType,
+                submittedAt: "Just now",
+                idPhoto: publicKycUrl,
+                kyc_status: "pending",
+              });
+            }
+
+            try {
+              localStorage.setItem("mouau_connect_user", JSON.stringify(userProfile));
+            } catch (_) {}
+            onAuth(userProfile);
+          } catch (err) {
+            setLoading(false);
+            setError(err.message || "Unexpected error during KYC submission.");
+          }
         }
       };
 
@@ -1067,7 +1231,7 @@
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-amber-400">📩 Gmail Verification Code</span>
                       <span className="rounded-full bg-[#1D9D21]/20 border border-[#1D9D21]/50 px-2.5 py-0.5 text-[11px] font-bold text-blue-100">
-                        Demo OTP: {generatedOtp}
+                        Check Gmail Inbox
                       </span>
                     </div>
                     <p className="text-xs text-blue-200/80">
@@ -1179,12 +1343,19 @@
 
                 <button
                   type="submit"
-                  className="w-full rounded-xl bg-[#1D9D21] py-3.5 text-sm font-extrabold text-white shadow-lg shadow-green-950/60 transition hover:bg-[#24b829] active:scale-[.99]">
-                  {mode === "signin" && "Sign In to MOUAU Connect →"}
-                  {mode === "signup" && signupStep === 1 && "Send 6-Digit Gmail OTP →"}
-                  {mode === "signup" && signupStep === 2 && "Verify OTP & Continue to KYC →"}
-                  {mode === "signup" && signupStep === 3 && "Submit KYC & Finish Sign Up →"}
-                  {mode === "forgot" && "Send Password Recovery Link"}
+                  disabled={loading}
+                  className="w-full rounded-xl bg-[#1D9D21] py-3.5 text-sm font-extrabold text-white shadow-lg shadow-green-950/60 transition hover:bg-[#24b829] active:scale-[.99] disabled:opacity-60">
+                  {loading
+                    ? "Processing with Supabase…"
+                    : mode === "signin"
+                    ? "Sign In to MOUAU Connect →"
+                    : mode === "signup" && signupStep === 1
+                    ? "Send 6-Digit Gmail OTP →"
+                    : mode === "signup" && signupStep === 2
+                    ? "Verify OTP & Continue to KYC →"
+                    : mode === "signup" && signupStep === 3
+                    ? "Submit KYC & Finish Sign Up →"
+                    : "Send Password Recovery Link"}
                 </button>
 
                 {mode === "forgot" && (
@@ -1676,6 +1847,36 @@
       const [selectedKyc, setSelectedKyc] = useState(null);
       const [rejectReason, setRejectReason] = useState("");
       const [showRejectBox, setShowRejectBox] = useState(false);
+      const [kycLoading, setKycLoading] = useState(false);
+
+      // Load pending students from Supabase `profiles` table whenever AdminDashboardModal opens
+      useEffect(() => {
+        if (!open) return;
+        let cancelled = false;
+        (async () => {
+          setKycLoading(true);
+          const { data, error } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("kyc_status", "pending")
+            .order("created_at", { ascending: false });
+          setKycLoading(false);
+          if (!cancelled && !error && Array.isArray(data)) {
+            const mapped = data.map((row) => ({
+              id: row.id,
+              fullName: row.full_name || "MOUAU Student",
+              email: row.email || "",
+              matricNo: row.matric_number || "",
+              department: `${row.college || ""} • ${row.department || ""}`.replace(/^ • | • $/g, ""),
+              docType: "MOUAU Student KYC Document",
+              submittedAt: row.created_at ? new Date(row.created_at).toLocaleString() : "Pending",
+              idPhoto: row.kyc_image_url || "./mouau-admin-block.jpg",
+            }));
+            setKycQueue(mapped);
+          }
+        })();
+        return () => { cancelled = true; };
+      }, [open]);
 
       if (!open) return null;
 
@@ -1685,7 +1886,17 @@
         setToast("Sponsored Ad approved & published to homepage!");
       };
 
-      const handleApproveKyc = (student) => {
+      const handleApproveKyc = async (student) => {
+        const { error } = await supabase
+          .from("profiles")
+          .update({ kyc_status: "approved" })
+          .eq("id", student.id);
+
+        if (error) {
+          setToast(`Supabase update error: ${error.message}`);
+          return;
+        }
+
         setKycQueue((prev) => prev.filter((k) => k.id !== student.id));
         setSelectedKyc(null);
         setRejectReason("");
@@ -1693,16 +1904,27 @@
         setToast(`✔ Approved Student KYC for ${student.fullName} (${student.matricNo})!`);
       };
 
-      const handleRejectKyc = (student) => {
+      const handleRejectKyc = async (student) => {
         if (!rejectReason.trim()) {
           setToast("Please enter a rejection reason for the student.");
           return;
         }
+
+        const { error } = await supabase
+          .from("profiles")
+          .update({ kyc_status: "rejected" })
+          .eq("id", student.id);
+
+        if (error) {
+          setToast(`Supabase update error: ${error.message}`);
+          return;
+        }
+
         setKycQueue((prev) => prev.filter((k) => k.id !== student.id));
         setSelectedKyc(null);
         setRejectReason("");
         setShowRejectBox(false);
-        setToast(`Rejected KYC for ${student.fullName}. Reason sent: "${rejectReason.trim()}"`);
+        setToast(`Rejected KYC for ${student.fullName}. Reason: "${rejectReason.trim()}"`);
       };
 
       return (
@@ -1954,8 +2176,34 @@
         return locOk && searchOk;
       };
 
-      const handleLogout = () => {
+      // Load pending KYC count from Supabase `profiles` table on mount
+      useEffect(() => {
+        (async () => {
+          const { data, error } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("kyc_status", "pending")
+            .order("created_at", { ascending: false });
+          if (!error && Array.isArray(data)) {
+            setKycQueue(
+              data.map((row) => ({
+                id: row.id,
+                fullName: row.full_name || "MOUAU Student",
+                email: row.email || "",
+                matricNo: row.matric_number || "",
+                department: `${row.college || ""} • ${row.department || ""}`.replace(/^ • | • $/g, ""),
+                docType: "MOUAU Student KYC Document",
+                submittedAt: row.created_at ? new Date(row.created_at).toLocaleString() : "Pending",
+                idPhoto: row.kyc_image_url || "./mouau-admin-block.jpg",
+              }))
+            );
+          }
+        })();
+      }, []);
+
+      const handleLogout = async () => {
         try {
+          await supabase.auth.signOut();
           localStorage.removeItem("mouau_connect_user");
         } catch (_) {}
         setUser(null);
