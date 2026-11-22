@@ -121,7 +121,22 @@
     ];
 
     const LOCATIONS = ["All Locations", "MOUAU, Umudike", "82 Bus Stop & Ndoro", "Umuahia & Surroundings"];
-    const DEPARTMENTS = ["CAERSE", "CASAP", "CAFST", "CCSS", "COED", "CEET", "COLMAS", "CNREM", "COLNAS", "COLPAS", "CVM", "SGS"];
+    const COLLEGES_MAP = {
+      "CAERSE": ["Agribusiness and Management", "Agricultural Economics", "Agricultural Extension and Rural Sociology"],
+      "CASAP": ["Animal Breeding and Physiology", "Animal Nutrition and Forage Science", "Animal Production and Livestock Management"],
+      "CAFST": ["Human Nutrition and Dietetics", "Home Science/Hospitality Management & Tourism", "Food Science and Technology"],
+      "CCSS": ["Agronomy", "Plant Health Management", "Soil Science and Meteorology", "Water Resources Management and Agrometeorology"],
+      "COED": ["Adult and Continuing Education", "Agricultural/Home Science Education", "Business Education", "Economics Education", "Education Management", "Industrial Technology Education", "Library and Information Science", "Guidance and Counselling", "Integrated Science Education"],
+      "CEET": ["Agricultural and Bioresources Engineering", "Civil Engineering", "Chemical Engineering", "Computer Engineering", "Electrical and Electronics Engineering", "Mechanical Engineering"],
+      "COLMAS": ["Marketing", "Accounting", "Banking and Finance", "Economics", "Industrial Relations and Personnel Management", "Entrepreneurial Studies", "Business Administration"],
+      "CNREM": ["Environment Management and Toxicology", "Fisheries and Aquatic Resources Management", " Forestry and Environmental Management"],
+      "COLNAS": ["Biochemistry", "Microbiology", "Plant Science and Biotechnology", "Zoology and Environmental Biology"],
+      "COLPAS": ["Chemistry", "Computer Science", "Geology", "Mathematics", "Physics", "Statistics"],
+      "CVM": ["Theriogenology", "Veterinary Anatomy", "Veterinary Medicine", "Veterinary Microbiology", "Veterinary Public Health and Preventive Medicine", "Veterinary Surgery and Radiology"],
+      "SGS": ["English", "French", "German", "History", "Social Science", "Physical and Health", "Philosophy", "Peace and Conflict"],
+      "Umuahia Community": ["Business / Vendor", "Employer", "Non-Student"],
+    };
+    const DEPARTMENTS = Object.keys(COLLEGES_MAP);
 
     const SPONSORED_ADS = [
       { id: "ad-1", title: "Crunchies & Mama Nkechi Combo Week — 20% Off Student ID", category: "Food & Restaurant", target: "MOUAU, Umudike", duration: "14 Days", reach: "4,820 views", description: "Flash your MOUAU or Umudike ID card for free delivery around Main Gate, 82 Bus Stop & Ahiaeke.", whatsapp: "2348023456789", sponsor: "Mama Nkechi Kitchen", verified: true },
@@ -427,7 +442,8 @@
         email: "",
         studentId: "",
         phone: "",
-        department: "CAERSE",
+        college: "CAERSE",
+        department: "Agribusiness and Management",
         password: "",
         agreedTerms: true,
       });
@@ -579,7 +595,7 @@
             return setError("Please enter a valid Gmail address (e.g. student@gmail.com).");
           }
           if (!form.studentId.trim()) return setError("Please enter your MOUAU Matric Number (e.g. MOUAU/21/12345).");
-          if (!form.department) return setError("Please select your College / Department.");
+          if (!form.college || !form.department) return setError("Please select your College and Department.");
           if (form.password.length < 6) return setError("Password must be at least 6 characters.");
           if (!form.agreedTerms) return setError("Please agree to the MOUAU Connect community safety rules.");
 
@@ -606,7 +622,8 @@
             name: form.fullName.trim(),
             email: form.email.trim().toLowerCase(),
             studentId: form.studentId.trim().toUpperCase(),
-            department: form.department || "CAERSE",
+            college: form.college || "CAERSE",
+            department: `${form.college || "CAERSE"} • ${form.department || "Agribusiness and Management"}`,
             role,
             interests: selectedInterests,
             verifiedStudent: false,
@@ -942,11 +959,32 @@
                         />
                       </div>
                       <div>
-                        <span className="mb-1 block text-xs font-semibold text-blue-200">College / Department</span>
-                        <select name="department" value={form.department} onChange={update} className={inputCls}>
-                          {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
+                        <span className="mb-1 block text-xs font-semibold text-blue-200">College</span>
+                        <select
+                          name="college"
+                          value={form.college}
+                          onChange={(e) => {
+                            const selectedCollege = e.target.value;
+                            const firstDept = (COLLEGES_MAP[selectedCollege] && COLLEGES_MAP[selectedCollege][0]) || "";
+                            setForm({ ...form, college: selectedCollege, department: firstDept });
+                          }}
+                          className={inputCls}>
+                          {DEPARTMENTS.map((c) => <option key={c} value={c}>{c}</option>)}
                         </select>
                       </div>
+                    </div>
+
+                    <div>
+                      <span className="mb-1 block text-xs font-semibold text-blue-200">Department ({form.college})</span>
+                      <select
+                        name="department"
+                        value={form.department}
+                        onChange={update}
+                        className={inputCls}>
+                        {(COLLEGES_MAP[form.college] || []).map((dept) => (
+                          <option key={dept} value={dept}>{dept.trim()}</option>
+                        ))}
+                      </select>
                     </div>
 
                     <div>
