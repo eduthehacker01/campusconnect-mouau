@@ -75,11 +75,35 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useMemo } = React;
+    const { useState, useEffect, useMemo, useRef } = React;
 
     /* ============================================================================
        1. NAVIGATION & PLATFORM DATA (MOUAU & Umudike + SURROUNDING COMMUNITIES)
        ============================================================================ */
+    const ADMIN_EMAIL = "your-email@gmail.com";
+
+    const INITIAL_KYC_QUEUE = [
+      {
+        id: "kyc-1",
+        fullName: "Chibuike Okafor",
+        email: "chibuike.okafor@gmail.com",
+        matricNo: "MOUAU/22/19402",
+        department: "COLENG (MOUAU)",
+        docType: "MOUAU Student ID Card",
+        submittedAt: "10 mins ago",
+        idPhoto: "./mouau-admin-block.jpg",
+      },
+      {
+        id: "kyc-2",
+        fullName: "Ngozi Eze",
+        email: "ngozi.eze@gmail.com",
+        matricNo: "MOUAU/23/21088",
+        department: "COLNAS (MOUAU)",
+        docType: "2025/2026 Course Registration Form",
+        submittedAt: "1 hour ago",
+        idPhoto: "./mouau-admin-block.jpg",
+      },
+    ];
     const MAIN_NAV = [
       { key: "home",          label: "Home",          icon: "🏠", badge: "Feed" },
       { key: "connect",       label: "Connect",       icon: "🤝", count: "3.4k" },
@@ -117,7 +141,7 @@
       { id: 103, name: "HP EliteBook 840 G5 — Core i5, 16GB RAM, 256GB SSD", category: "Electronics", condition: "Used", price: "₦245,000", location: "Umuahia & Surroundings", seller: "Apex Gadgets Hub", verified: true, description: "UK used clean laptop with backlit keyboard, 5+ hrs battery and free laptop bag.", whatsapp: "2348011122203" },
       { id: 104, name: "2-Burner Table Gas Cooker + 6kg Cylinder & Hose", category: "Home Appliances", condition: "Used", price: "₦24,500", location: "MOUAU, Umudike", seller: "Tobechi O.", verified: true, description: "Complete cooking set ready for a fresher moving into a self-con.", whatsapp: "2348011122204" },
       { id: 105, name: "Engineering & Basic Sciences Past Questions Compendium (100L–300L)", category: "Books", condition: "New", price: "₦3,500", location: "MOUAU, Umudike", seller: "Academic Press Club", verified: true, description: "Solved MTH, PHY, CHM & GST past questions with step-by-step workings.", whatsapp: "2348011122205" },
-      { id: 106, name: "Unisex Retro Oversized Streetwear Tees & Cargo Pants", category: "Fashion", condition: "New", price: "₦8,500", location: "82 Bus Stop & Ndoro", seller: "DripPlug Uturu", verified: false, description: "Heavyweight cotton tees available in S, M, L, XL. Delivery to MOUAU & Umudike.", whatsapp: "2348011122206" },
+      { id: 106, name: "Unisex Retro Oversized Streetwear Tees & Cargo Pants", category: "Fashion", condition: "New", price: "₦8,500", location: "82 Bus Stop & Ndoro", seller: "DripPlug Umudike", verified: false, description: "Heavyweight cotton tees available in S, M, L, XL. Delivery to MOUAU & Umudike.", whatsapp: "2348011122206" },
     ];
 
     const INITIAL_JOBS = [
@@ -215,7 +239,7 @@
       { id: 601, title: "Self-con Lodge at 82 Bus Stop (Steady Water & Fenced)", type: "Self-Contained", price: "₦180,000 / yr", location: "MOUAU, Umudike", area: "82 Bus Stop", verified: true, description: "Tiled self-contain with borehole water, individual prepaid meter and security gate.", whatsapp: "2348012345678" },
       { id: 602, title: "FEMALE ROOMMATE NEEDED — 2-Bedroom Flat at Ahiaeke", type: "Roommate Needed", price: "₦85,000 each (Rent Shared Equally)", location: "MOUAU, Umudike", area: "Ahiaeke Layout", verified: true, description: "Roommate needed for a clean 2-bedroom apartment around Umudike. Separate rooms, shared kitchen & sitting room.", whatsapp: "2348089012345" },
       { id: 603, title: "Executive Newly-Built Self-con with POP & Solar Lights", type: "Self-Contained", price: "₦250,000 / yr", location: "MOUAU, Umudike", area: "Ndoro Junction", verified: true, description: "Wardrobe, kitchen cabinet, 24/7 solar compound lighting and 5 mins Keke ride to Main Gate.", whatsapp: "2348092223334" },
-      { id: 604, title: "Male Roommate Needed — Up-School Gate Self-Con", type: "Roommate Needed", price: "₦60,000 split rent", location: "82 Bus Stop & Ndoro", area: "Uturu Main Gate", verified: true, description: "Looking for a tidy 200L/300L student to share a spacious self-con with fan and reading table.", whatsapp: "2348045678901" },
+      { id: 604, title: "Male Roommate Needed — Up-School Gate Self-Con", type: "Roommate Needed", price: "₦60,000 split rent", location: "82 Bus Stop & Ndoro", area: "Ndoro Main Gate", verified: true, description: "Looking for a tidy 200L/300L student to share a spacious self-con with fan and reading table.", whatsapp: "2348045678901" },
     ];
 
     const INITIAL_PEOPLE = [
@@ -390,21 +414,35 @@
 
     const SIGNUP_INTERESTS = ["Programming", "Entrepreneurship", "Football", "Scholarships", "Fashion", "Agribusiness", "UI/UX Design", "Photography"];
 
-    function AuthScreen({ onAuth }) {
+    function AuthScreen({ onAuth, onSubmitKyc, setToast }) {
       const [step, setStep] = useState("landing"); // 'landing' | 'auth'
       const [mode, setMode] = useState("signup");  // 'signin' | 'signup' | 'forgot'
+      const [signupStep, setSignupStep] = useState(1); // 1: Info | 2: 6-Digit OTP | 3: MOUAU KYC
       const [role, setRole] = useState("Student");
       const [showPassword, setShowPassword] = useState(false);
       const [rememberMe, setRememberMe] = useState(true);
       const [selectedInterests, setSelectedInterests] = useState(["Entrepreneurship", "Scholarships"]);
       const [form, setForm] = useState({
         fullName: "",
+        email: "",
         studentId: "",
         phone: "",
         department: "COLMAS (MOUAU)",
         password: "",
         agreedTerms: true,
       });
+
+      // Step 2: 6-digit OTP state
+      const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
+      const [generatedOtp, setGeneratedOtp] = useState("");
+      const [resendTimer, setResendTimer] = useState(60);
+      const otpRefs = useRef([]);
+
+      // Step 3: KYC Upload state
+      const [kycDocType, setKycDocType] = useState("MOUAU Student ID Card");
+      const [kycImage, setKycImage] = useState(null);
+      const [kycFileName, setKycFileName] = useState("");
+
       const [error, setError] = useState("");
       const [resetSent, setResetSent] = useState(false);
       const isSignup = mode === "signup";
@@ -417,49 +455,183 @@
         );
       };
 
+      // Password strength calculation
+      const passwordStrength = useMemo(() => {
+        const p = form.password || "";
+        if (!p) return { score: 0, label: "Enter password", color: "bg-blue-900" };
+        let s = 0;
+        if (p.length >= 6) s++;
+        if (p.length >= 10) s++;
+        if (/[A-Z]/.test(p) && /[0-9]/.test(p)) s++;
+        if (/[^A-Za-z0-9]/.test(p)) s++;
+        if (s <= 1) return { score: 25, label: "Weak", color: "bg-rose-500" };
+        if (s === 2) return { score: 55, label: "Fair", color: "bg-amber-400" };
+        if (s === 3) return { score: 80, label: "Good", color: "bg-emerald-400" };
+        return { score: 100, label: "Strong", color: "bg-[#1D9D21]" };
+      }, [form.password]);
+
+      // 60-second OTP resend countdown timer
+      useEffect(() => {
+        if (!isSignup || signupStep !== 2 || resendTimer <= 0) return;
+        const timer = setInterval(() => {
+          setResendTimer((t) => (t > 0 ? t - 1 : 0));
+        }, 1000);
+        return () => clearInterval(timer);
+      }, [isSignup, signupStep, resendTimer]);
+
+      const sendOtpCode = () => {
+        const code = String(Math.floor(100000 + Math.random() * 900000));
+        setGeneratedOtp(code);
+        setOtpDigits(["", "", "", "", "", ""]);
+        setResendTimer(60);
+        if (setToast) {
+          setToast(`📩 Demo Gmail OTP for ${form.email}: ${code}`);
+        }
+        setTimeout(() => {
+          if (otpRefs.current[0]) otpRefs.current[0].focus();
+        }, 80);
+      };
+
+      const handleOtpChange = (index, val) => {
+        const digit = val.replace(/\D/g, "").slice(-1);
+        const next = [...otpDigits];
+        next[index] = digit;
+        setOtpDigits(next);
+        if (digit && index < 5 && otpRefs.current[index + 1]) {
+          otpRefs.current[index + 1].focus();
+        }
+      };
+
+      const handleOtpKeyDown = (index, e) => {
+        if (e.key === "Backspace" && !otpDigits[index] && index > 0 && otpRefs.current[index - 1]) {
+          otpRefs.current[index - 1].focus();
+        }
+      };
+
+      const handleOtpPaste = (e) => {
+        const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+        if (!pasted) return;
+        e.preventDefault();
+        const next = ["", "", "", "", "", ""];
+        pasted.split("").forEach((ch, idx) => { next[idx] = ch; });
+        setOtpDigits(next);
+        const focusIdx = Math.min(5, pasted.length - 1);
+        if (otpRefs.current[focusIdx]) otpRefs.current[focusIdx].focus();
+      };
+
+      const handleKycFile = (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        if (!file.type.startsWith("image/")) {
+          setError("Please upload an image file (JPG/PNG) of your Student ID Card or Course Form.");
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+          setKycImage(reader.result);
+          setKycFileName(file.name);
+          setError("");
+        };
+        reader.readAsDataURL(file);
+      };
+
       const submit = (e) => {
         e.preventDefault();
         setError("");
 
         if (mode === "forgot") {
-          if (!form.studentId.trim()) return setError("Enter your Student ID, email or phone number to reset your password.");
+          if (!form.studentId.trim() && !form.email.trim()) {
+            return setError("Enter your Student ID, Gmail or phone number to reset your password.");
+          }
           setResetSent(true);
           return;
         }
 
-        if (!form.studentId.trim() || !form.password) {
-          return setError("Please enter your Student ID / Email / Phone and Password.");
+        if (!isSignup) {
+          // SIGN IN FLOW
+          if (!form.studentId.trim() || !form.password) {
+            return setError("Please enter your Gmail / Student ID and Password.");
+          }
+          const rawId = form.studentId.trim();
+          const emailVal = rawId.includes("@") ? rawId.toLowerCase() : (form.email.trim().toLowerCase() || `${rawId.toLowerCase().replace(/[^a-z0-9]/g, "")}@gmail.com`);
+          const userProfile = {
+            name: rawId.includes("@") ? rawId.split("@")[0] : "Tobechi Okafor",
+            email: emailVal,
+            studentId: rawId.toUpperCase(),
+            department: form.department || "COLMAS (MOUAU)",
+            role,
+            interests: selectedInterests,
+            verifiedStudent: true,
+            kycStatus: "Verified",
+            rememberMe,
+          };
+          try {
+            localStorage.setItem("mouau_connect_user", JSON.stringify(userProfile));
+          } catch (_) {}
+          onAuth(userProfile);
+          return;
         }
 
-        if (isSignup) {
-          if (!form.fullName.trim()) return setError("Please enter your full name or business name.");
-          if (!form.department) return setError("Please select your campus or community location.");
+        // SIGN UP 3-STEP FLOW
+        if (signupStep === 1) {
+          if (!form.fullName.trim()) return setError("Please enter your Full Name.");
+          if (!form.email.trim() || !form.email.toLowerCase().includes("@")) {
+            return setError("Please enter a valid Gmail address (e.g. student@gmail.com).");
+          }
+          if (!form.studentId.trim()) return setError("Please enter your MOUAU Matric Number (e.g. MOUAU/21/12345).");
+          if (!form.department) return setError("Please select your College / Department.");
           if (form.password.length < 6) return setError("Password must be at least 6 characters.");
           if (!form.agreedTerms) return setError("Please agree to the MOUAU Connect community safety rules.");
+
+          setSignupStep(2);
+          sendOtpCode();
+          return;
         }
 
-        const userProfile = {
-          name: isSignup ? form.fullName.trim() : (form.studentId.includes("@") ? form.studentId.split("@")[0] : "Tobechi Okafor"),
-          studentId: form.studentId.trim().toUpperCase(),
-          department: form.department || "COLMAS (MOUAU)",
-          role,
-          interests: selectedInterests,
-          verifiedStudent: true,
-          rememberMe,
-        };
+        if (signupStep === 2) {
+          const entered = otpDigits.join("");
+          if (entered.length < 6) return setError("Please enter all 6 digits of your Gmail OTP code.");
+          if (generatedOtp && entered !== generatedOtp) {
+            return setError(`Invalid OTP code. (Demo code is ${generatedOtp})`);
+          }
+          setSignupStep(3);
+          return;
+        }
 
-        try {
-          if (rememberMe) localStorage.setItem("mouau_connect_user", JSON.stringify(userProfile));
-        } catch (_) {}
-
-        onAuth(userProfile);
-      };
-
-      const quickDemoLogin = (demoUser) => {
-        try {
-          localStorage.setItem("mouau_connect_user", JSON.stringify(demoUser));
-        } catch (_) {}
-        onAuth(demoUser);
+        if (signupStep === 3) {
+          if (!kycImage) {
+            return setError("Please upload a photo of your MOUAU Student ID Card or Course Form for KYC verification.");
+          }
+          const userProfile = {
+            name: form.fullName.trim(),
+            email: form.email.trim().toLowerCase(),
+            studentId: form.studentId.trim().toUpperCase(),
+            department: form.department || "COLMAS (MOUAU)",
+            role,
+            interests: selectedInterests,
+            verifiedStudent: false,
+            kycStatus: "Pending Admin KYC Review",
+            kycDocType,
+            kycImage,
+            rememberMe: true,
+          };
+          if (onSubmitKyc) {
+            onSubmitKyc({
+              id: "kyc-" + Date.now(),
+              fullName: userProfile.name,
+              email: userProfile.email,
+              matricNo: userProfile.studentId,
+              department: userProfile.department,
+              docType: kycDocType,
+              submittedAt: "Just now",
+              idPhoto: kycImage,
+            });
+          }
+          try {
+            localStorage.setItem("mouau_connect_user", JSON.stringify(userProfile));
+          } catch (_) {}
+          onAuth(userProfile);
+        }
       };
 
       /* ---------------- VIEW 1: FULL-SCREEN WIDE LANDING PAGE ---------------- */
@@ -589,13 +761,17 @@
                 <div>
                   <h2 className="text-xl font-extrabold text-white sm:text-2xl">
                     {mode === "signin" && "Sign in to your account"}
-                    {mode === "signup" && "Create your verified account"}
+                    {mode === "signup" && signupStep === 1 && "Step 1 of 3 — Create your account"}
+                    {mode === "signup" && signupStep === 2 && "Step 2 of 3 — Verify your Gmail OTP"}
+                    {mode === "signup" && signupStep === 3 && "Step 3 of 3 — MOUAU Student KYC"}
                     {mode === "forgot" && "Reset your password"}
                   </h2>
                   <p className="text-xs text-blue-200/75">
-                    {mode === "signin" && "Enter your Student ID, phone or email to access MOUAU Connect."}
-                    {mode === "signup" && "Get 2 FREE Marketplace listings and full access to campus opportunities."}
-                    {mode === "forgot" && "We'll send a recovery code to your registered email or WhatsApp."}
+                    {mode === "signin" && "Enter your Gmail or Student ID to access MOUAU Connect."}
+                    {mode === "signup" && signupStep === 1 && "Enter your full name, Gmail, MOUAU matric number, college and password."}
+                    {mode === "signup" && signupStep === 2 && `Enter the 6-digit verification code sent to ${form.email || "your Gmail"}.`}
+                    {mode === "signup" && signupStep === 3 && "Upload your MOUAU Student ID Card or Course Form to verify your student status."}
+                    {mode === "forgot" && "We'll send a recovery code to your registered Gmail or WhatsApp."}
                   </p>
                 </div>
               </div>
@@ -607,7 +783,7 @@
                     <button
                       key={key}
                       type="button"
-                      onClick={() => { setMode(key); setError(""); }}
+                      onClick={() => { setMode(key); setSignupStep(1); setError(""); }}
                       className={`rounded-xl py-2.5 text-xs sm:text-sm font-extrabold transition ${
                         mode === key
                           ? "bg-[#1D9D21] text-white shadow-lg"
@@ -619,8 +795,31 @@
                 </div>
               )}
 
-              {/* Role Selection on Sign Up */}
+              {/* 3-Step Progress Bar for Sign Up */}
               {isSignup && (
+                <div className="mt-4 grid grid-cols-3 gap-2">
+                  {[
+                    [1, "1. Account Info"],
+                    [2, "2. Gmail OTP"],
+                    [3, "3. Student KYC"],
+                  ].map(([num, label]) => (
+                    <div
+                      key={num}
+                      className={`rounded-xl border px-2.5 py-1.5 text-center text-[11px] font-extrabold transition ${
+                        signupStep === num
+                          ? "border-[#1D9D21] bg-[#1D9D21]/25 text-white"
+                          : signupStep > num
+                          ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-300"
+                          : "border-blue-800/50 bg-slate-950/50 text-blue-300/60"
+                      }`}>
+                      {signupStep > num ? "✔ " : ""}{label}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Role Selection on Sign Up (Step 1) */}
+              {isSignup && signupStep === 1 && (
                 <div className="mt-4">
                   <span className="mb-1.5 block text-xs font-bold text-blue-200">I am joining as a:</span>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -644,143 +843,286 @@
 
               {/* Main Auth Form */}
               <form onSubmit={submit} className="mt-4 space-y-3.5" noValidate>
-                {isSignup && (
-                  <div className="grid gap-3 sm:grid-cols-2">
+                {/* ================= SIGN IN OR FORGOT PASSWORD ================= */}
+                {!isSignup && (
+                  <>
                     <div>
                       <span className="mb-1 block text-xs font-semibold text-blue-200">
-                        {role === "Business" || role === "Employer" ? "Full Name / Business Name" : "Full Name"}
+                        Gmail Address or MOUAU Matric Number
                       </span>
                       <input
-                        name="fullName"
-                        value={form.fullName}
+                        name="studentId"
+                        value={form.studentId}
                         onChange={update}
                         className={inputCls}
-                        placeholder="e.g. Tobechi Okafor"
+                        placeholder="e.g. student@gmail.com or MOUAU/21/12345"
                       />
                     </div>
-                    <div>
-                      <span className="mb-1 block text-xs font-semibold text-blue-200">WhatsApp Phone Number</span>
-                      <input
-                        name="phone"
-                        type="tel"
-                        value={form.phone}
-                        onChange={update}
-                        className={inputCls}
-                        placeholder="e.g. 08012345678"
-                      />
-                    </div>
-                  </div>
+
+                    {mode !== "forgot" && (
+                      <div>
+                        <div className="mb-1 flex items-center justify-between">
+                          <span className="text-xs font-semibold text-blue-200">Password</span>
+                          <button
+                            type="button"
+                            onClick={() => { setMode("forgot"); setError(""); setResetSent(false); }}
+                            className="text-xs font-semibold text-amber-400 hover:underline">
+                            Forgot password?
+                          </button>
+                        </div>
+                        <div className="relative">
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            name="password"
+                            value={form.password}
+                            onChange={update}
+                            className={`${inputCls} pr-16`}
+                            placeholder="••••••••"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword((s) => !s)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg bg-blue-950/80 px-2 py-1 text-[11px] font-bold text-blue-200 hover:text-white">
+                            {showPassword ? "Hide" : "Show"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {mode === "signin" && (
+                      <label className="flex items-center gap-2 text-xs text-blue-200/85 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={rememberMe}
+                          onChange={(e) => setRememberMe(e.target.checked)}
+                          className="h-4 w-4 accent-[#1D9D21] rounded"
+                        />
+                        Keep me signed in on this browser
+                      </label>
+                    )}
+                  </>
                 )}
 
-                <div className={isSignup ? "grid gap-3 sm:grid-cols-2" : ""}>
-                  <div>
-                    <span className="mb-1 block text-xs font-semibold text-blue-200">
-                      {role === "Student" ? "MOUAU Student ID or Email" : "Email Address or Phone Number"}
-                    </span>
-                    <input
-                      name="studentId"
-                      value={form.studentId}
-                      onChange={update}
-                      className={inputCls}
-                      placeholder="e.g. MOUAU/21/12345 or email@mouau.edu.ng"
-                    />
-                  </div>
-
-                  {isSignup && (
-                    <div>
-                      <span className="mb-1 block text-xs font-semibold text-blue-200">Campus / Community Location</span>
-                      <select name="department" value={form.department} onChange={update} className={inputCls}>
-                        {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
-                      </select>
+                {/* ================= SIGN UP STEP 1: DETAILS & PASSWORD STRENGTH ================= */}
+                {isSignup && signupStep === 1 && (
+                  <>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div>
+                        <span className="mb-1 block text-xs font-semibold text-blue-200">Full Name</span>
+                        <input
+                          name="fullName"
+                          value={form.fullName}
+                          onChange={update}
+                          className={inputCls}
+                          placeholder="e.g. Tobechi Okafor"
+                        />
+                      </div>
+                      <div>
+                        <span className="mb-1 block text-xs font-semibold text-blue-200">Gmail Address</span>
+                        <input
+                          name="email"
+                          type="email"
+                          value={form.email}
+                          onChange={update}
+                          className={inputCls}
+                          placeholder="e.g. tobechi@gmail.com"
+                        />
+                      </div>
                     </div>
-                  )}
-                </div>
 
-                {mode !== "forgot" && (
-                  <div>
-                    <div className="mb-1 flex items-center justify-between">
-                      <span className="text-xs font-semibold text-blue-200">Password</span>
-                      {mode === "signin" && (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div>
+                        <span className="mb-1 block text-xs font-semibold text-blue-200">MOUAU Matric Number</span>
+                        <input
+                          name="studentId"
+                          value={form.studentId}
+                          onChange={update}
+                          className={inputCls}
+                          placeholder="e.g. MOUAU/21/12345"
+                        />
+                      </div>
+                      <div>
+                        <span className="mb-1 block text-xs font-semibold text-blue-200">College / Department</span>
+                        <select name="department" value={form.department} onChange={update} className={inputCls}>
+                          {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="mb-1 block text-xs font-semibold text-blue-200">Password</span>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          name="password"
+                          value={form.password}
+                          onChange={update}
+                          className={`${inputCls} pr-16`}
+                          placeholder="•••••••• (min. 6 characters)"
+                        />
                         <button
                           type="button"
-                          onClick={() => { setMode("forgot"); setError(""); setResetSent(false); }}
-                          className="text-xs font-semibold text-amber-400 hover:underline">
-                          Forgot password?
+                          onClick={() => setShowPassword((s) => !s)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg bg-blue-950/80 px-2 py-1 text-[11px] font-bold text-blue-200 hover:text-white">
+                          {showPassword ? "Hide" : "Show"}
+                        </button>
+                      </div>
+                      {/* Password Strength Bar */}
+                      <div className="mt-2">
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="text-blue-200/75">Password strength:</span>
+                          <span className="font-bold text-amber-300">{passwordStrength.label}</span>
+                        </div>
+                        <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-950">
+                          <div
+                            className={`h-full transition-all duration-300 ${passwordStrength.color}`}
+                            style={{ width: `${passwordStrength.score}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="mb-1.5 block text-xs font-semibold text-blue-200">
+                        Pick your interests (for People Near Me & Opportunities feed):
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {SIGNUP_INTERESTS.map((tag) => {
+                          const active = selectedInterests.includes(tag);
+                          return (
+                            <button
+                              key={tag}
+                              type="button"
+                              onClick={() => toggleInterest(tag)}
+                              className={`rounded-full px-2.5 py-1 text-[11px] font-bold transition ${
+                                active
+                                  ? "bg-[#1D9D21] text-white"
+                                  : "border border-blue-800/60 bg-slate-950/70 text-blue-200/80 hover:border-blue-600"
+                              }`}>
+                              {active ? "✔ " : "+ "}#{tag}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <label className="flex items-start gap-2 text-xs text-blue-200/85 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name="agreedTerms"
+                        checked={form.agreedTerms}
+                        onChange={(e) => setForm({ ...form, agreedTerms: e.target.checked })}
+                        className="mt-0.5 h-4 w-4 accent-[#1D9D21] rounded"
+                      />
+                      <span>
+                        I agree to the <strong>MOUAU Connect Community Rules</strong> (no job scams, no fake accommodation listings, respect user privacy).
+                      </span>
+                    </label>
+                  </>
+                )}
+
+                {/* ================= SIGN UP STEP 2: 6-DIGIT GMAIL OTP ================= */}
+                {isSignup && signupStep === 2 && (
+                  <div className="space-y-4 rounded-2xl border border-blue-800/60 bg-slate-950/70 p-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-amber-400">📩 Gmail Verification Code</span>
+                      <span className="rounded-full bg-[#1D9D21]/20 border border-[#1D9D21]/50 px-2.5 py-0.5 text-[11px] font-bold text-blue-100">
+                        Demo OTP: {generatedOtp}
+                      </span>
+                    </div>
+                    <p className="text-xs text-blue-200/80">
+                      Enter the 6-digit OTP sent to <strong>{form.email}</strong>:
+                    </p>
+
+                    <div className="grid grid-cols-6 gap-2 sm:gap-3" onPaste={handleOtpPaste}>
+                      {otpDigits.map((digit, idx) => (
+                        <input
+                          key={idx}
+                          ref={(el) => (otpRefs.current[idx] = el)}
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) => handleOtpChange(idx, e.target.value)}
+                          onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                          aria-label={`OTP Digit ${idx + 1}`}
+                          className="h-12 w-full rounded-xl border border-blue-700 bg-slate-900 text-center text-lg font-black text-white focus:border-[#1D9D21] focus:outline-none focus:ring-2 focus:ring-[#1D9D21]/50"
+                        />
+                      ))}
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs">
+                      <button
+                        type="button"
+                        onClick={() => { setSignupStep(1); setError(""); }}
+                        className="font-bold text-blue-300 hover:text-white">
+                        ← Edit Gmail / Info
+                      </button>
+                      {resendTimer > 0 ? (
+                        <span className="text-blue-300/75">Resend code in <strong>{resendTimer}s</strong></span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={sendOtpCode}
+                          className="font-extrabold text-amber-400 hover:underline">
+                          Resend 6-Digit OTP
                         </button>
                       )}
                     </div>
-                    <div className="relative">
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        name="password"
-                        value={form.password}
-                        onChange={update}
-                        className={`${inputCls} pr-16`}
-                        placeholder="•••••••• (min. 6 characters)"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword((s) => !s)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg bg-blue-950/80 px-2 py-1 text-[11px] font-bold text-blue-200 hover:text-white">
-                        {showPassword ? "Hide" : "Show"}
-                      </button>
-                    </div>
                   </div>
                 )}
 
-                {/* Interest Selection on Sign Up */}
-                {isSignup && (
-                  <div>
-                    <span className="mb-1.5 block text-xs font-semibold text-blue-200">
-                      Pick your interests (for People Near Me & Opportunities feed):
-                    </span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {SIGNUP_INTERESTS.map((tag) => {
-                        const active = selectedInterests.includes(tag);
-                        return (
+                {/* ================= SIGN UP STEP 3: MOUAU STUDENT KYC UPLOAD ================= */}
+                {isSignup && signupStep === 3 && (
+                  <div className="space-y-4 rounded-2xl border border-blue-800/60 bg-slate-950/70 p-4">
+                    <div>
+                      <span className="mb-1 block text-xs font-bold text-amber-400">🪪 MOUAU Student KYC Verification</span>
+                      <p className="text-xs text-blue-200/80">
+                        Upload a clear photo of your <strong>MOUAU Student ID Card</strong> or <strong>Current Course Registration Form</strong> matching Matric No: <strong>{form.studentId.toUpperCase()}</strong>.
+                      </p>
+                    </div>
+
+                    <div>
+                      <span className="mb-1 block text-xs font-semibold text-blue-200">Document Type</span>
+                      <select
+                        value={kycDocType}
+                        onChange={(e) => setKycDocType(e.target.value)}
+                        className={inputCls}>
+                        <option value="MOUAU Student ID Card">MOUAU Student ID Card</option>
+                        <option value="MOUAU Course Registration Form">MOUAU Course Registration Form</option>
+                        <option value="MOUAU Admission Letter / School Fees Receipt">MOUAU Admission Letter / School Fees Receipt</option>
+                      </select>
+                    </div>
+
+                    {kycImage ? (
+                      <div className="overflow-hidden rounded-2xl border border-[#1D9D21]/60 bg-slate-900">
+                        <img src={kycImage} alt="Student KYC Document Preview" className="h-44 w-full object-cover" />
+                        <div className="flex items-center justify-between px-3 py-2 text-xs">
+                          <span className="truncate font-semibold text-emerald-300">✔ {kycFileName || kycDocType}</span>
                           <button
-                            key={tag}
                             type="button"
-                            onClick={() => toggleInterest(tag)}
-                            className={`rounded-full px-2.5 py-1 text-[11px] font-bold transition ${
-                              active
-                                ? "bg-[#1D9D21] text-white"
-                                : "border border-blue-800/60 bg-slate-950/70 text-blue-200/80 hover:border-blue-600"
-                            }`}>
-                            {active ? "✔ " : "+ "}#{tag}
+                            onClick={() => { setKycImage(null); setKycFileName(""); }}
+                            className="font-bold text-amber-400 hover:underline">
+                            Change Photo
                           </button>
-                        );
-                      })}
-                    </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-blue-700/70 bg-slate-900/80 px-4 py-7 text-center transition hover:border-[#1D9D21]">
+                        <span className="text-3xl">🪪</span>
+                        <span className="text-xs font-extrabold text-white">Click to upload Student ID Card or Course Form</span>
+                        <span className="text-[11px] text-blue-300/70">JPG or PNG • Preview shown before finishing</span>
+                        <input type="file" accept="image/*" onChange={handleKycFile} className="sr-only" />
+                      </label>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => { setSignupStep(2); setError(""); }}
+                      className="text-xs font-bold text-blue-300 hover:text-white">
+                      ← Back to OTP Step
+                    </button>
                   </div>
-                )}
-
-                {/* Remember Me / Terms Checkboxes */}
-                {mode === "signin" && (
-                  <label className="flex items-center gap-2 text-xs text-blue-200/85 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      className="h-4 w-4 accent-[#1D9D21] rounded"
-                    />
-                    Keep me signed in on this browser
-                  </label>
-                )}
-
-                {isSignup && (
-                  <label className="flex items-start gap-2 text-xs text-blue-200/85 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      name="agreedTerms"
-                      checked={form.agreedTerms}
-                      onChange={(e) => setForm({ ...form, agreedTerms: e.target.checked })}
-                      className="mt-0.5 h-4 w-4 accent-[#1D9D21] rounded"
-                    />
-                    <span>
-                      I agree to the <strong>MOUAU Connect Community Rules</strong> (no job scams, no fake accommodation listings, respect user privacy).
-                    </span>
-                  </label>
                 )}
 
                 {error && (
@@ -799,7 +1141,9 @@
                   type="submit"
                   className="w-full rounded-xl bg-[#1D9D21] py-3.5 text-sm font-extrabold text-white shadow-lg shadow-green-950/60 transition hover:bg-[#24b829] active:scale-[.99]">
                   {mode === "signin" && "Sign In to MOUAU Connect →"}
-                  {mode === "signup" && `Create Verified ${role} Account →`}
+                  {mode === "signup" && signupStep === 1 && "Send 6-Digit Gmail OTP →"}
+                  {mode === "signup" && signupStep === 2 && "Verify OTP & Continue to KYC →"}
+                  {mode === "signup" && signupStep === 3 && "Submit KYC & Finish Sign Up →"}
                   {mode === "forgot" && "Send Password Recovery Link"}
                 </button>
 
@@ -884,17 +1228,19 @@
                 </span>
               </button>
 
-              <button
-                onClick={onOpenAdmin}
-                title="Admin Moderation & Trust Center"
-                className="relative rounded-full border border-blue-700/60 bg-blue-950/80 px-3 py-1.5 text-xs font-bold text-blue-200 hover:border-blue-400">
-                🛡️ Trust
-                {pendingCount > 0 && (
-                  <span className="ml-1 rounded-full bg-amber-500 px-1.5 py-0.2 text-[10px] font-extrabold text-slate-950">
-                    {pendingCount}
-                  </span>
-                )}
-              </button>
+              {user?.email?.toLowerCase() === ADMIN_EMAIL && (
+                <button
+                  onClick={onOpenAdmin}
+                  title="Admin Moderation & Trust Center"
+                  className="relative rounded-full border border-blue-700/60 bg-blue-950/80 px-3 py-1.5 text-xs font-bold text-blue-200 hover:border-blue-400">
+                  🛡️ Trust
+                  {pendingCount > 0 && (
+                    <span className="ml-1 rounded-full bg-amber-500 px-1.5 py-0.2 text-[10px] font-extrabold text-slate-950">
+                      {pendingCount}
+                    </span>
+                  )}
+                </button>
+              )}
 
               <button
                 onClick={() => setProfileOpen((o) => !o)}
@@ -957,10 +1303,531 @@
     }
 
     /* ============================================================================
+       4B. TOP-LEVEL MODALS (UniversalPostModal, SponsoredAdModal, AdminDashboardModal)
+       ============================================================================ */
+    function UniversalPostModal({
+      open,
+      onClose,
+      user,
+      freePostsLeft,
+      approvedUserProducts,
+      setApprovedUserProducts,
+      setMarketplace,
+      setJobs,
+      setAccommodation,
+      setServices,
+      setLostFound,
+      setActiveSection,
+      setToast,
+    }) {
+      const [postType, setPostType] = useState("marketplace");
+      const [title, setTitle] = useState("");
+      const [category, setCategory] = useState("Electronics");
+      const [condition, setCondition] = useState("Used");
+      const [price, setPrice] = useState("");
+      const [location, setLocation] = useState("MOUAU, Umudike");
+      const [description, setDescription] = useState("");
+      const [whatsapp, setWhatsapp] = useState("");
+
+      if (!open) return null;
+
+      const resetForm = () => {
+        setTitle("");
+        setPrice("");
+        setDescription("");
+        setWhatsapp("");
+      };
+
+      const submitPost = (e) => {
+        e.preventDefault();
+        if (!title.trim() || !whatsapp.trim()) {
+          setToast("Please enter a title and WhatsApp contact.");
+          return;
+        }
+
+        if (postType === "marketplace") {
+          const isFree = approvedUserProducts < 2;
+          setMarketplace((prev) => [
+            {
+              id: Date.now(),
+              name: title.trim(),
+              category,
+              condition,
+              price: price.trim() || "Negotiable",
+              location,
+              seller: `${user.name} (${isFree ? "Free Quota" : "Paid Listing"})`,
+              verified: true,
+              description: description.trim(),
+              whatsapp,
+            },
+            ...prev,
+          ]);
+          setApprovedUserProducts((c) => c + 1);
+          setActiveSection("marketplace");
+          setToast(
+            isFree
+              ? `Product listed FREE! (${Math.max(0, 1 - approvedUserProducts)} free listing remaining)`
+              : "Paid Marketplace product published!"
+          );
+        } else if (postType === "job") {
+          setJobs((prev) => [
+            {
+              id: Date.now(),
+              title: title.trim().toUpperCase(),
+              type: category || "Part-time",
+              employer: user.name,
+              verified: true,
+              location,
+              hours: "To be discussed",
+              salary: price.trim() || "To be discussed",
+              deadline: "Open",
+              description: description.trim(),
+              requirements: ["Honesty and punctuality", "Good communication skills"],
+              whatsapp,
+              featured: false,
+            },
+            ...prev,
+          ]);
+          setActiveSection("jobs");
+          setToast("Job opportunity published!");
+        } else if (postType === "accommodation") {
+          setAccommodation((prev) => [
+            {
+              id: Date.now(),
+              title: title.trim(),
+              type: category || "Self-Contained",
+              price: price.trim() || "Contact for rent",
+              location,
+              area: location,
+              verified: true,
+              description: description.trim(),
+              whatsapp,
+            },
+            ...prev,
+          ]);
+          setActiveSection("accommodation");
+          setToast("Accommodation / Roommate listing published!");
+        } else if (postType === "service") {
+          setServices((prev) => [
+            {
+              id: Date.now(),
+              title: title.trim(),
+              category: category || "Digital Skill",
+              provider: user.name,
+              location,
+              price: price.trim() || "Contact for quote",
+              rating: "New ★",
+              verified: true,
+              description: description.trim(),
+              whatsapp,
+            },
+            ...prev,
+          ]);
+          setActiveSection("services");
+          setToast("Service listing added to directory!");
+        } else if (postType === "lostfound") {
+          setLostFound((prev) => [
+            {
+              id: Date.now(),
+              status: category === "FOUND" ? "FOUND" : "LOST",
+              title: title.trim(),
+              location,
+              date: "Just now",
+              description: description.trim(),
+              whatsapp,
+            },
+            ...prev,
+          ]);
+          setActiveSection("lostfound");
+          setToast("Lost & Found alert posted!");
+        }
+        resetForm();
+        onClose();
+      };
+
+      return (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm" onClick={onClose}>
+          <div onClick={(e) => e.stopPropagation()} className="pop-in max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-blue-700/60 bg-slate-900 p-6 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-extrabold text-white">Publish to MOUAU Connect</h2>
+              <button onClick={onClose} className="text-blue-300 hover:text-white">✕</button>
+            </div>
+
+            <div className="mt-3 rounded-xl border border-amber-400/40 bg-amber-500/10 p-3 text-xs text-amber-200">
+              💡 <strong>Marketplace Rule:</strong> Your first <strong>2 approved product listings are FREE</strong> ({freePostsLeft} remaining). Subsequent product listings & promoted posts are paid.
+            </div>
+
+            <form onSubmit={submitPost} className="mt-4 space-y-3.5">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <span className="mb-1 block text-xs font-semibold text-blue-200">Section</span>
+                  <select value={postType} onChange={(e) => setPostType(e.target.value)} className={inputCls}>
+                    <option value="marketplace">🛒 Sell a Product</option>
+                    <option value="job">💼 Post a Job / Gig</option>
+                    <option value="accommodation">🏘️ Lodge / Roommate</option>
+                    <option value="service">🛠️ Offer a Service</option>
+                    <option value="lostfound">🔍 Lost & Found</option>
+                  </select>
+                </div>
+                <div>
+                  <span className="mb-1 block text-xs font-semibold text-blue-200">Target Campus</span>
+                  <select value={location} onChange={(e) => setLocation(e.target.value)} className={inputCls}>
+                    <option value="MOUAU, Umudike">MOUAU, Umudike</option>
+                    <option value="82 Bus Stop & Ndoro">82 Bus Stop & Ndoro</option>
+                    <option value="Umuahia & Surroundings">Umuahia & Surroundings</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <span className="mb-1 block text-xs font-semibold text-blue-200">Title</span>
+                <input value={title} onChange={(e) => setTitle(e.target.value)} className={inputCls} placeholder="e.g. Standing Fan / Sales Attendant Needed / Roommate Needed" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <span className="mb-1 block text-xs font-semibold text-blue-200">Category / Type</span>
+                  <input value={category} onChange={(e) => setCategory(e.target.value)} className={inputCls} placeholder="e.g. Electronics, Part-time, LOST" />
+                </div>
+                <div>
+                  <span className="mb-1 block text-xs font-semibold text-blue-200">Price / Salary (₦)</span>
+                  <input value={price} onChange={(e) => setPrice(e.target.value)} className={inputCls} placeholder="e.g. ₦25,000 or To be discussed" />
+                </div>
+              </div>
+
+              {postType === "marketplace" && (
+                <div>
+                  <span className="mb-1 block text-xs font-semibold text-blue-200">Product Condition</span>
+                  <select value={condition} onChange={(e) => setCondition(e.target.value)} className={inputCls}>
+                    <option value="Used">Used (Neat)</option>
+                    <option value="New">Brand New</option>
+                  </select>
+                </div>
+              )}
+
+              <div>
+                <span className="mb-1 block text-xs font-semibold text-blue-200">Description & Requirements</span>
+                <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className={inputCls} placeholder="Include key details, requirements or condition…" />
+              </div>
+
+              <div>
+                <span className="mb-1 block text-xs font-semibold text-blue-200">Verifiable WhatsApp Contact</span>
+                <input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} className={inputCls} placeholder="e.g. 08012345678" />
+              </div>
+
+              <button type="submit" className="w-full rounded-xl bg-green-600 py-3 text-sm font-bold text-white hover:bg-green-500">
+                Publish Listing
+              </button>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    function SponsoredAdModal({ open, onClose, user, setPendingAds, setToast }) {
+      const [title, setTitle] = useState("");
+      const [category, setCategory] = useState("Restaurant & Food");
+      const [target, setTarget] = useState("MOUAU, Umudike & Surrounding Areas");
+      const [duration, setDuration] = useState("7 Days (₦5,000)");
+      const [description, setDescription] = useState("");
+      const [whatsapp, setWhatsapp] = useState("");
+
+      if (!open) return null;
+
+      const submitAd = (e) => {
+        e.preventDefault();
+        if (!title.trim() || !whatsapp.trim()) return;
+        setPendingAds((prev) => [
+          {
+            id: "ad-" + Date.now(),
+            title: title.trim(),
+            category,
+            target,
+            duration,
+            reach: "Pending Admin Approval",
+            description: description.trim(),
+            whatsapp,
+            sponsor: user.name,
+            verified: true,
+          },
+          ...prev,
+        ]);
+        setTitle("");
+        setDescription("");
+        setWhatsapp("");
+        onClose();
+        setToast("Sponsored Ad submitted for Admin Legitimacy Review! 🛡️");
+      };
+
+      return (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm" onClick={onClose}>
+          <div onClick={(e) => e.stopPropagation()} className="pop-in max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-amber-400/50 bg-slate-900 p-6 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-extrabold text-white">📢 Create Sponsored Ad Campaign</h2>
+              <button onClick={onClose} className="text-blue-300">✕</button>
+            </div>
+            <p className="mt-1 text-xs text-blue-200/80">
+              Choose your target campus, duration and category. All paid ads undergo manual review before publication to keep users safe.
+            </p>
+
+            <form onSubmit={submitAd} className="mt-4 space-y-3.5">
+              <div>
+                <span className="mb-1 block text-xs font-semibold text-blue-200">Advertisement Title</span>
+                <input value={title} onChange={(e) => setTitle(e.target.value)} className={inputCls} placeholder="e.g. 20% Student Discount at Crunchies / New Clothing Arrivals" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <span className="mb-1 block text-xs font-semibold text-blue-200">Target Location</span>
+                  <select value={target} onChange={(e) => setTarget(e.target.value)} className={inputCls}>
+                    <option>MOUAU, Umudike</option>
+                    <option>82 Bus Stop & Ndoro</option>
+                    <option>MOUAU, Umudike & Surrounding Areas</option>
+                  </select>
+                </div>
+                <div>
+                  <span className="mb-1 block text-xs font-semibold text-blue-200">Campaign Duration</span>
+                  <select value={duration} onChange={(e) => setDuration(e.target.value)} className={inputCls}>
+                    <option>3 Days (₦2,500)</option>
+                    <option>7 Days (₦5,000)</option>
+                    <option>14 Days (₦9,000)</option>
+                    <option>30 Days (₦15,000)</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <span className="mb-1 block text-xs font-semibold text-blue-200">Ad Category</span>
+                <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputCls}>
+                  <option>Restaurant & Food</option>
+                  <option>Fashion & Clothing</option>
+                  <option>Barbing & Salon</option>
+                  <option>Tech & Gadgets</option>
+                  <option>Event & Programme</option>
+                </select>
+              </div>
+              <div>
+                <span className="mb-1 block text-xs font-semibold text-blue-200">Ad Description</span>
+                <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className={inputCls} placeholder="Describe your offer, discount or programme…" />
+              </div>
+              <div>
+                <span className="mb-1 block text-xs font-semibold text-blue-200">Business WhatsApp / Contact</span>
+                <input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} className={inputCls} placeholder="e.g. 08012345678" />
+              </div>
+              <button type="submit" className="w-full rounded-xl bg-amber-500 py-3 text-sm font-extrabold text-slate-950 hover:bg-amber-400">
+                Submit Sponsored Ad for Review
+              </button>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    function AdminDashboardModal({
+      open,
+      onClose,
+      pendingAds,
+      setPendingAds,
+      setAds,
+      reports,
+      setReports,
+      kycQueue,
+      setKycQueue,
+      setToast,
+    }) {
+      const [selectedKyc, setSelectedKyc] = useState(null);
+      const [rejectReason, setRejectReason] = useState("");
+      const [showRejectBox, setShowRejectBox] = useState(false);
+
+      if (!open) return null;
+
+      const approveAd = (ad) => {
+        setAds((prev) => [{ ...ad, reach: "Live • Boosted" }, ...prev]);
+        setPendingAds((prev) => prev.filter((a) => a.id !== ad.id));
+        setToast("Sponsored Ad approved & published to homepage!");
+      };
+
+      const handleApproveKyc = (student) => {
+        setKycQueue((prev) => prev.filter((k) => k.id !== student.id));
+        setSelectedKyc(null);
+        setRejectReason("");
+        setShowRejectBox(false);
+        setToast(`✔ Approved Student KYC for ${student.fullName} (${student.matricNo})!`);
+      };
+
+      const handleRejectKyc = (student) => {
+        if (!rejectReason.trim()) {
+          setToast("Please enter a rejection reason for the student.");
+          return;
+        }
+        setKycQueue((prev) => prev.filter((k) => k.id !== student.id));
+        setSelectedKyc(null);
+        setRejectReason("");
+        setShowRejectBox(false);
+        setToast(`Rejected KYC for ${student.fullName}. Reason sent: "${rejectReason.trim()}"`);
+      };
+
+      return (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm" onClick={onClose}>
+          <div onClick={(e) => e.stopPropagation()} className="pop-in max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-blue-700 bg-slate-900 p-6 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-xs font-bold uppercase text-amber-400">Day-One Governance</span>
+                <h2 className="text-xl font-extrabold text-white">🛡️ Admin Moderation & Trust Dashboard</h2>
+              </div>
+              <button onClick={onClose} className="text-blue-300">✕</button>
+            </div>
+
+            <div className="mt-4 grid grid-cols-3 gap-3 text-center">
+              <div className="rounded-2xl bg-blue-950/70 p-3 border border-blue-800/50">
+                <p className="text-lg font-black text-emerald-400">{kycQueue.length}</p>
+                <p className="text-[11px] text-blue-200">Pending Student KYC</p>
+              </div>
+              <div className="rounded-2xl bg-blue-950/70 p-3 border border-blue-800/50">
+                <p className="text-lg font-black text-amber-400">{pendingAds.length}</p>
+                <p className="text-[11px] text-blue-200">Ads Awaiting Review</p>
+              </div>
+              <div className="rounded-2xl bg-blue-950/70 p-3 border border-blue-800/50">
+                <p className="text-lg font-black text-rose-400">{reports.length}</p>
+                <p className="text-[11px] text-blue-200">User Reports</p>
+              </div>
+            </div>
+
+            {/* STUDENT KYC QUEUE */}
+            <h3 className="mt-5 text-sm font-bold text-white">🪪 Student KYC Queue (Verify Matric No & ID Card)</h3>
+            {kycQueue.length === 0 ? (
+              <p className="mt-2 rounded-xl bg-slate-950/60 p-3 text-xs text-blue-300/70">All student KYC submissions have been reviewed.</p>
+            ) : (
+              <div className="mt-2 space-y-2">
+                {kycQueue.map((st) => (
+                  <div key={st.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-blue-800/60 bg-slate-950/80 p-3">
+                    <div>
+                      <p className="text-sm font-bold text-white">{st.fullName}</p>
+                      <p className="text-xs text-amber-400 font-semibold">{st.matricNo} • {st.department}</p>
+                      <p className="text-[11px] text-blue-300/75">{st.docType} • {st.submittedAt}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { setSelectedKyc(st); setShowRejectBox(false); setRejectReason(""); }}
+                      className="rounded-xl bg-[#1D9D21] px-3.5 py-2 text-xs font-extrabold text-white hover:bg-[#24b829]">
+                      🪪 View ID
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* VIEW ID PHOTO MODAL / DRAWER INSIDE ADMIN PANEL */}
+            {selectedKyc && (
+              <div className="mt-4 rounded-2xl border border-amber-400/60 bg-slate-950 p-4 shadow-xl">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-extrabold text-white">Reviewing ID: {selectedKyc.fullName}</p>
+                    <p className="text-xs text-amber-400">Matric No: {selectedKyc.matricNo} • {selectedKyc.docType}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedKyc(null)}
+                    className="text-xs font-bold text-blue-300 hover:text-white">
+                    Close Preview ✕
+                  </button>
+                </div>
+
+                <div className="mt-3 overflow-hidden rounded-xl border border-blue-800 bg-slate-900">
+                  <img
+                    src={selectedKyc.idPhoto}
+                    alt={`KYC ID for ${selectedKyc.fullName}`}
+                    className="max-h-64 w-full object-contain bg-black/50"
+                  />
+                </div>
+
+                {showRejectBox && (
+                  <div className="mt-3">
+                    <span className="mb-1 block text-xs font-semibold text-rose-300">Reason for Rejection</span>
+                    <input
+                      value={rejectReason}
+                      onChange={(e) => setRejectReason(e.target.value)}
+                      placeholder="e.g. Blurred ID photo / Matric number does not match card"
+                      className={inputCls}
+                    />
+                  </div>
+                )}
+
+                <div className="mt-3 flex gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => handleApproveKyc(selectedKyc)}
+                    className="flex-1 rounded-xl bg-[#1D9D21] py-2.5 text-xs font-extrabold text-white hover:bg-[#24b829]">
+                    ✔ Approve Student KYC
+                  </button>
+                  {!showRejectBox ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowRejectBox(true)}
+                      className="flex-1 rounded-xl bg-rose-600 py-2.5 text-xs font-extrabold text-white hover:bg-rose-500">
+                      ✕ Reject
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleRejectKyc(selectedKyc)}
+                      className="flex-1 rounded-xl bg-rose-600 py-2.5 text-xs font-extrabold text-white hover:bg-rose-500">
+                      Confirm Reject & Send Reason
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <h3 className="mt-5 text-sm font-bold text-white">Pending Paid Advertisements (Review Before Publishing)</h3>
+            {pendingAds.length === 0 ? (
+              <p className="mt-2 rounded-xl bg-slate-950/60 p-3 text-xs text-blue-300/70">No pending ads right now. Click "📢 Run Sponsored Ad" in the header to test ad review.</p>
+            ) : (
+              <div className="mt-2 space-y-2">
+                {pendingAds.map((ad) => (
+                  <div key={ad.id} className="flex items-center justify-between rounded-xl border border-amber-400/40 bg-slate-950/80 p-3">
+                    <div>
+                      <p className="text-sm font-bold text-white">{ad.title}</p>
+                      <p className="text-xs text-blue-300">{ad.target} • {ad.duration}</p>
+                    </div>
+                    <button onClick={() => approveAd(ad)} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white">
+                      Approve & Publish
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <h3 className="mt-5 text-sm font-bold text-white">User Safety Reports</h3>
+            {reports.length === 0 ? (
+              <p className="mt-2 rounded-xl bg-slate-950/60 p-3 text-xs text-blue-300/70">Zero active reports. Users can click "🚩 Report" on any listing or profile.</p>
+            ) : (
+              <div className="mt-2 space-y-2">
+                {reports.map((r) => (
+                  <div key={r.id} className="flex items-center justify-between rounded-xl border border-rose-500/30 bg-rose-950/20 p-3 text-xs">
+                    <span>🚩 <strong>{r.itemTitle}</strong> ({r.section}) — {r.time}</span>
+                    <button onClick={() => setReports((prev) => prev.filter((x) => x.id !== r.id))} className="text-amber-300 underline">
+                      Dismiss
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    /* ============================================================================
        5. MAIN APPLICATION & ECOSYSTEM VIEWS
        ============================================================================ */
     function App() {
-      const [user, setUser] = useState(null);
+      const [user, setUser] = useState(() => {
+        try {
+          const saved = localStorage.getItem("mouau_connect_user");
+          return saved ? JSON.parse(saved) : null;
+        } catch (_) {
+          return null;
+        }
+      });
       const [activeSection, setActiveSection] = useState("home");
       const [campusFilter, setCampusFilter] = useState("All Locations");
       const [search, setSearch] = useState("");
@@ -989,7 +1856,8 @@
       const [jobTypeFilter, setJobTypeFilter] = useState("All");
       const [marketCategory, setMarketCategory] = useState("All");
 
-      // Governance, Reporting & Roadmap state
+      // Governance, KYC Queue, Reporting & Roadmap state
+      const [kycQueue, setKycQueue] = useState(INITIAL_KYC_QUEUE);
       const [reports, setReports] = useState([]);
       const [pendingAds, setPendingAds] = useState([]);
       const [suggestions, setSuggestions] = useState([
@@ -1007,7 +1875,7 @@
 
       useEffect(() => {
         if (!toast) return;
-        const t = setTimeout(() => setToast(null), 3200);
+        const t = setTimeout(() => setToast(null), 4000);
         return () => clearTimeout(t);
       }, [toast]);
 
@@ -1046,376 +1914,29 @@
         return locOk && searchOk;
       };
 
-      /* ---------------- Sub-Modal: Create Universal Listing ---------------- */
-      function UniversalPostModal() {
-        const [postType, setPostType] = useState("marketplace");
-        const [title, setTitle] = useState("");
-        const [category, setCategory] = useState("Electronics");
-        const [condition, setCondition] = useState("Used");
-        const [price, setPrice] = useState("");
-        const [location, setLocation] = useState("MOUAU, Umudike");
-        const [description, setDescription] = useState("");
-        const [whatsapp, setWhatsapp] = useState("");
+      const handleLogout = () => {
+        try {
+          localStorage.removeItem("mouau_connect_user");
+        } catch (_) {}
+        setUser(null);
+        setToast("You have signed out.");
+      };
 
-        if (!postModalOpen) return null;
-
-        const submitPost = (e) => {
-          e.preventDefault();
-          if (!title.trim() || !whatsapp.trim()) {
-            setToast("Please enter a title and WhatsApp contact.");
-            return;
-          }
-
-          if (postType === "marketplace") {
-            const isFree = approvedUserProducts < 2;
-            setMarketplace((prev) => [
-              {
-                id: Date.now(),
-                name: title.trim(),
-                category,
-                condition,
-                price: price.trim() || "Negotiable",
-                location,
-                seller: `${user.name} (${isFree ? "Free Quota" : "Paid Listing"})`,
-                verified: true,
-                description: description.trim(),
-                whatsapp,
-              },
-              ...prev,
-            ]);
-            setApprovedUserProducts((c) => c + 1);
-            setActiveSection("marketplace");
-            setToast(
-              isFree
-                ? `Product listed FREE! (${Math.max(0, 1 - approvedUserProducts)} free listing remaining)`
-                : "Paid Marketplace product published!"
-            );
-          } else if (postType === "job") {
-            setJobs((prev) => [
-              {
-                id: Date.now(),
-                title: title.trim().toUpperCase(),
-                type: category || "Part-time",
-                employer: user.name,
-                verified: true,
-                location,
-                hours: "To be discussed",
-                salary: price.trim() || "To be discussed",
-                deadline: "Open",
-                description: description.trim(),
-                requirements: ["Honesty and punctuality", "Good communication skills"],
-                whatsapp,
-                featured: false,
-              },
-              ...prev,
-            ]);
-            setActiveSection("jobs");
-            setToast("Job opportunity published!");
-          } else if (postType === "accommodation") {
-            setAccommodation((prev) => [
-              {
-                id: Date.now(),
-                title: title.trim(),
-                type: category || "Self-Contained",
-                price: price.trim() || "Contact for rent",
-                location,
-                area: location,
-                verified: true,
-                description: description.trim(),
-                whatsapp,
-              },
-              ...prev,
-            ]);
-            setActiveSection("accommodation");
-            setToast("Accommodation / Roommate listing published!");
-          } else if (postType === "service") {
-            setServices((prev) => [
-              {
-                id: Date.now(),
-                title: title.trim(),
-                category: category || "Digital Skill",
-                provider: user.name,
-                location,
-                price: price.trim() || "Contact for quote",
-                rating: "New ★",
-                verified: true,
-                description: description.trim(),
-                whatsapp,
-              },
-              ...prev,
-            ]);
-            setActiveSection("services");
-            setToast("Service listing added to directory!");
-          } else if (postType === "lostfound") {
-            setLostFound((prev) => [
-              {
-                id: Date.now(),
-                status: category === "FOUND" ? "FOUND" : "LOST",
-                title: title.trim(),
-                location,
-                date: "Just now",
-                description: description.trim(),
-                whatsapp,
-              },
-              ...prev,
-            ]);
-            setActiveSection("lostfound");
-            setToast("Lost & Found alert posted!");
-          }
-          setPostModalOpen(false);
-        };
-
+      if (!user) {
         return (
-          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm" onClick={() => setPostModalOpen(false)}>
-            <div onClick={(e) => e.stopPropagation()} className="pop-in max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-blue-700/60 bg-slate-900 p-6 shadow-2xl">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-extrabold text-white">Publish to MOUAU Connect</h2>
-                <button onClick={() => setPostModalOpen(false)} className="text-blue-300 hover:text-white">✕</button>
-              </div>
-
-              {/* Free 2 marketplace products notice */}
-              <div className="mt-3 rounded-xl border border-amber-400/40 bg-amber-500/10 p-3 text-xs text-amber-200">
-                💡 <strong>Marketplace Rule:</strong> Your first <strong>2 approved product listings are FREE</strong> ({freePostsLeft} remaining). Subsequent product listings & promoted posts are paid.
-              </div>
-
-              <form onSubmit={submitPost} className="mt-4 space-y-3.5">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <span className="mb-1 block text-xs font-semibold text-blue-200">Section</span>
-                    <select value={postType} onChange={(e) => setPostType(e.target.value)} className={inputCls}>
-                      <option value="marketplace">🛒 Sell a Product</option>
-                      <option value="job">💼 Post a Job / Gig</option>
-                      <option value="accommodation">🏘️ Lodge / Roommate</option>
-                      <option value="service">🛠️ Offer a Service</option>
-                      <option value="lostfound">🔍 Lost & Found</option>
-                    </select>
-                  </div>
-                  <div>
-                    <span className="mb-1 block text-xs font-semibold text-blue-200">Target Campus</span>
-                    <select value={location} onChange={(e) => setLocation(e.target.value)} className={inputCls}>
-                      <option value="MOUAU, Umudike">MOUAU, Umudike</option>
-                      <option value="82 Bus Stop & Ndoro">82 Bus Stop & Ndoro</option>
-                      <option value="Umuahia & Surroundings">Umuahia & Surroundings</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <span className="mb-1 block text-xs font-semibold text-blue-200">Title</span>
-                  <input value={title} onChange={(e) => setTitle(e.target.value)} className={inputCls} placeholder="e.g. Standing Fan / Sales Attendant Needed / Roommate Needed" />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <span className="mb-1 block text-xs font-semibold text-blue-200">Category / Type</span>
-                    <input value={category} onChange={(e) => setCategory(e.target.value)} className={inputCls} placeholder="e.g. Electronics, Part-time, LOST" />
-                  </div>
-                  <div>
-                    <span className="mb-1 block text-xs font-semibold text-blue-200">Price / Salary (₦)</span>
-                    <input value={price} onChange={(e) => setPrice(e.target.value)} className={inputCls} placeholder="e.g. ₦25,000 or To be discussed" />
-                  </div>
-                </div>
-
-                {postType === "marketplace" && (
-                  <div>
-                    <span className="mb-1 block text-xs font-semibold text-blue-200">Product Condition</span>
-                    <select value={condition} onChange={(e) => setCondition(e.target.value)} className={inputCls}>
-                      <option value="Used">Used (Neat)</option>
-                      <option value="New">Brand New</option>
-                    </select>
-                  </div>
-                )}
-
-                <div>
-                  <span className="mb-1 block text-xs font-semibold text-blue-200">Description & Requirements</span>
-                  <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className={inputCls} placeholder="Include key details, requirements or condition…" />
-                </div>
-
-                <div>
-                  <span className="mb-1 block text-xs font-semibold text-blue-200">Verifiable WhatsApp Contact</span>
-                  <input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} className={inputCls} placeholder="e.g. 08012345678" />
-                </div>
-
-                <button type="submit" className="w-full rounded-xl bg-green-600 py-3 text-sm font-bold text-white hover:bg-green-500">
-                  Publish Listing
-                </button>
-              </form>
-            </div>
-          </div>
+          <>
+            <AuthScreen
+              onAuth={(u) => {
+                setUser(u);
+                setToast(`Welcome to MOUAU Connect, ${u.name.split(" ")[0]}!`);
+              }}
+              onSubmitKyc={(kycEntry) => setKycQueue((prev) => [kycEntry, ...prev])}
+              setToast={setToast}
+            />
+            <Toast message={toast} />
+          </>
         );
       }
-
-      /* ---------------- Sub-Modal: Sponsored Ad Campaign Builder ---------------- */
-      function SponsoredAdModal() {
-        const [title, setTitle] = useState("");
-        const [category, setCategory] = useState("Restaurant & Food");
-        const [target, setTarget] = useState("MOUAU, Umudike & Surrounding Areas");
-        const [duration, setDuration] = useState("7 Days (₦5,000)");
-        const [description, setDescription] = useState("");
-        const [whatsapp, setWhatsapp] = useState("");
-
-        if (!adModalOpen) return null;
-
-        const submitAd = (e) => {
-          e.preventDefault();
-          if (!title.trim() || !whatsapp.trim()) return;
-          setPendingAds((prev) => [
-            {
-              id: "ad-" + Date.now(),
-              title: title.trim(),
-              category,
-              target,
-              duration,
-              reach: "Pending Admin Approval",
-              description: description.trim(),
-              whatsapp,
-              sponsor: user.name,
-              verified: true,
-            },
-            ...prev,
-          ]);
-          setAdModalOpen(false);
-          setToast("Sponsored Ad submitted for Admin Legitimacy Review! 🛡️");
-        };
-
-        return (
-          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm" onClick={() => setAdModalOpen(false)}>
-            <div onClick={(e) => e.stopPropagation()} className="pop-in max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-amber-400/50 bg-slate-900 p-6 shadow-2xl">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-extrabold text-white">📢 Create Sponsored Ad Campaign</h2>
-                <button onClick={() => setAdModalOpen(false)} className="text-blue-300">✕</button>
-              </div>
-              <p className="mt-1 text-xs text-blue-200/80">
-                Choose your target campus, duration and category. All paid ads undergo manual review before publication to keep users safe.
-              </p>
-
-              <form onSubmit={submitAd} className="mt-4 space-y-3.5">
-                <div>
-                  <span className="mb-1 block text-xs font-semibold text-blue-200">Advertisement Title</span>
-                  <input value={title} onChange={(e) => setTitle(e.target.value)} className={inputCls} placeholder="e.g. 20% Student Discount at Crunchies / New Clothing Arrivals" />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <span className="mb-1 block text-xs font-semibold text-blue-200">Target Location</span>
-                    <select value={target} onChange={(e) => setTarget(e.target.value)} className={inputCls}>
-                      <option>MOUAU, Umudike</option>
-                      <option>82 Bus Stop & Ndoro</option>
-                      <option>MOUAU, Umudike & Surrounding Areas</option>
-                    </select>
-                  </div>
-                  <div>
-                    <span className="mb-1 block text-xs font-semibold text-blue-200">Campaign Duration</span>
-                    <select value={duration} onChange={(e) => setDuration(e.target.value)} className={inputCls}>
-                      <option>3 Days (₦2,500)</option>
-                      <option>7 Days (₦5,000)</option>
-                      <option>14 Days (₦9,000)</option>
-                      <option>30 Days (₦15,000)</option>
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <span className="mb-1 block text-xs font-semibold text-blue-200">Ad Category</span>
-                  <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputCls}>
-                    <option>Restaurant & Food</option>
-                    <option>Fashion & Clothing</option>
-                    <option>Barbing & Salon</option>
-                    <option>Tech & Gadgets</option>
-                    <option>Event & Programme</option>
-                  </select>
-                </div>
-                <div>
-                  <span className="mb-1 block text-xs font-semibold text-blue-200">Ad Description</span>
-                  <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className={inputCls} placeholder="Describe your offer, discount or programme…" />
-                </div>
-                <div>
-                  <span className="mb-1 block text-xs font-semibold text-blue-200">Business WhatsApp / Contact</span>
-                  <input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} className={inputCls} placeholder="e.g. 08012345678" />
-                </div>
-                <button type="submit" className="w-full rounded-xl bg-amber-500 py-3 text-sm font-extrabold text-slate-950 hover:bg-amber-400">
-                  Submit Sponsored Ad for Review
-                </button>
-              </form>
-            </div>
-          </div>
-        );
-      }
-
-      /* ---------------- Sub-Modal: Admin Moderation & Trust Dashboard ---------------- */
-      function AdminDashboardModal() {
-        if (!adminModalOpen) return null;
-
-        const approveAd = (ad) => {
-          setAds((prev) => [{ ...ad, reach: "Live • Boosted" }, ...prev]);
-          setPendingAds((prev) => prev.filter((a) => a.id !== ad.id));
-          setToast("Sponsored Ad approved & published to homepage!");
-        };
-
-        return (
-          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm" onClick={() => setAdminModalOpen(false)}>
-            <div onClick={(e) => e.stopPropagation()} className="pop-in max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-blue-700 bg-slate-900 p-6 shadow-2xl">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold uppercase text-amber-400">Day-One Governance</span>
-                  <h2 className="text-xl font-extrabold text-white">🛡️ Admin Moderation & Trust Dashboard</h2>
-                </div>
-                <button onClick={() => setAdminModalOpen(false)} className="text-blue-300">✕</button>
-              </div>
-
-              <div className="mt-4 grid grid-cols-3 gap-3 text-center">
-                <div className="rounded-2xl bg-blue-950/70 p-3 border border-blue-800/50">
-                  <p className="text-lg font-black text-amber-400">{pendingAds.length}</p>
-                  <p className="text-[11px] text-blue-200">Ads Awaiting Review</p>
-                </div>
-                <div className="rounded-2xl bg-blue-950/70 p-3 border border-blue-800/50">
-                  <p className="text-lg font-black text-rose-400">{reports.length}</p>
-                  <p className="text-[11px] text-blue-200">User Reports</p>
-                </div>
-                <div className="rounded-2xl bg-blue-950/70 p-3 border border-blue-800/50">
-                  <p className="text-lg font-black text-emerald-400">100%</p>
-                  <p className="text-[11px] text-blue-200">Verified Employers</p>
-                </div>
-              </div>
-
-              <h3 className="mt-5 text-sm font-bold text-white">Pending Paid Advertisements (Review Before Publishing)</h3>
-              {pendingAds.length === 0 ? (
-                <p className="mt-2 rounded-xl bg-slate-950/60 p-3 text-xs text-blue-300/70">No pending ads right now. Click "📢 Run Sponsored Ad" in the header to test ad review.</p>
-              ) : (
-                <div className="mt-2 space-y-2">
-                  {pendingAds.map((ad) => (
-                    <div key={ad.id} className="flex items-center justify-between rounded-xl border border-amber-400/40 bg-slate-950/80 p-3">
-                      <div>
-                        <p className="text-sm font-bold text-white">{ad.title}</p>
-                        <p className="text-xs text-blue-300">{ad.target} • {ad.duration}</p>
-                      </div>
-                      <button onClick={() => approveAd(ad)} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white">
-                        Approve & Publish
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <h3 className="mt-5 text-sm font-bold text-white">User Safety Reports</h3>
-              {reports.length === 0 ? (
-                <p className="mt-2 rounded-xl bg-slate-950/60 p-3 text-xs text-blue-300/70">Zero active reports. Users can click "🚩 Report" on any listing or profile.</p>
-              ) : (
-                <div className="mt-2 space-y-2">
-                  {reports.map((r) => (
-                    <div key={r.id} className="flex items-center justify-between rounded-xl border border-rose-500/30 bg-rose-950/20 p-3 text-xs">
-                      <span>🚩 <strong>{r.itemTitle}</strong> ({r.section}) — {r.time}</span>
-                      <button onClick={() => setReports((prev) => prev.filter((x) => x.id !== r.id))} className="text-amber-300 underline">
-                        Dismiss
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        );
-      }
-
-      if (!user) return <AuthScreen onAuth={(u) => { setUser(u); setToast(`Welcome to MOUAU Connect, ${u.name.split(" ")[0]}!`); }} />;
 
       return (
         <div className="min-h-screen">
@@ -1431,8 +1952,8 @@
             onOpenPostModal={() => setPostModalOpen(true)}
             onOpenAdModal={() => setAdModalOpen(true)}
             onOpenAdmin={() => setAdminModalOpen(true)}
-            pendingCount={pendingAds.length + reports.length}
-            onLogout={() => setUser(null)}
+            pendingCount={kycQueue.length + pendingAds.length + reports.length}
+            onLogout={handleLogout}
           />
 
           <main className="mx-auto max-w-7xl px-4 pb-28 pt-6 space-y-8">
@@ -1967,7 +2488,7 @@
             {activeSection === "accommodation" && (
               <section>
                 <div className="mb-4 rounded-2xl border border-amber-400/40 bg-amber-500/10 p-4 text-xs text-amber-200">
-                  🏘️ <strong>Accommodation Anti-Scam Notice:</strong> Physically inspect any lodge or self-con at 82 Bus Stop, Ndoro, Ahiaeke or Uturu and verify the caretaker/landlord before paying rent.
+                  🏘️ <strong>Accommodation Anti-Scam Notice:</strong> Physically inspect any lodge or self-con at 82 Bus Stop, Ndoro, Ahiaeke or Umudike and verify the caretaker/landlord before paying rent.
                 </div>
 
                 <div className="grid gap-5 sm:grid-cols-2">
@@ -2274,9 +2795,40 @@
             </p>
           </footer>
 
-          <UniversalPostModal />
-          <SponsoredAdModal />
-          <AdminDashboardModal />
+          <UniversalPostModal
+            open={postModalOpen}
+            onClose={() => setPostModalOpen(false)}
+            user={user}
+            freePostsLeft={freePostsLeft}
+            approvedUserProducts={approvedUserProducts}
+            setApprovedUserProducts={setApprovedUserProducts}
+            setMarketplace={setMarketplace}
+            setJobs={setJobs}
+            setAccommodation={setAccommodation}
+            setServices={setServices}
+            setLostFound={setLostFound}
+            setActiveSection={setActiveSection}
+            setToast={setToast}
+          />
+          <SponsoredAdModal
+            open={adModalOpen}
+            onClose={() => setAdModalOpen(false)}
+            user={user}
+            setPendingAds={setPendingAds}
+            setToast={setToast}
+          />
+          <AdminDashboardModal
+            open={adminModalOpen}
+            onClose={() => setAdminModalOpen(false)}
+            pendingAds={pendingAds}
+            setPendingAds={setPendingAds}
+            setAds={setAds}
+            reports={reports}
+            setReports={setReports}
+            kycQueue={kycQueue}
+            setKycQueue={setKycQueue}
+            setToast={setToast}
+          />
           <Toast message={toast} />
         </div>
       );
