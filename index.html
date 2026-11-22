@@ -516,7 +516,7 @@
           });
         } catch (_) {}
         if (setToast) {
-          setToast(`📩 Confirmation sent to ${form.email.trim().toLowerCase()}! (Instant OTP Code: ${demoCode})`);
+          setToast(`📩 Verification email sent to ${form.email.trim().toLowerCase()}! Check your Gmail inbox.`);
         }
         setTimeout(() => {
           if (otpRefs.current[0]) otpRefs.current[0].focus();
@@ -681,7 +681,7 @@
           setResendTimer(60);
           setSignupStep(2);
           if (setToast) {
-            setToast(`📩 Verification email sent to ${cleanEmail}! (Or use 6-digit OTP: ${demoCode})`);
+            setToast(`📩 Verification email sent to ${cleanEmail}! Check your Gmail inbox.`);
           }
           setTimeout(() => {
             if (otpRefs.current[0]) otpRefs.current[0].focus();
@@ -1221,15 +1221,6 @@
                   <div className="space-y-4 rounded-2xl border border-blue-800/60 bg-slate-950/70 p-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="text-xs font-bold text-amber-400">📩 Gmail Verification</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (!generatedOtp) return;
-                          setOtpDigits(generatedOtp.split(""));
-                        }}
-                        className="rounded-full bg-[#1D9D21]/25 border border-[#1D9D21]/60 px-2.5 py-0.5 text-[11px] font-extrabold text-amber-300 hover:bg-[#1D9D21]/40">
-                        ⚡ Auto-Fill OTP: {generatedOtp}
-                      </button>
                     </div>
                     <p className="text-xs text-blue-200/80">
                       Enter the 6-digit OTP code for <strong>{form.email}</strong>, OR click the <strong>"Confirm email address"</strong> link sent to your Gmail inbox:
