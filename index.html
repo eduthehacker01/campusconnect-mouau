@@ -505,18 +505,30 @@
 
       const sendOtpCode = async () => {
         setError("");
-        const demoCode = String(Math.floor(100000 + Math.random() * 900000));
-        setGeneratedOtp(demoCode);
         setOtpDigits(["", "", "", "", "", ""]);
         setResendTimer(60);
-        try {
-          await supabase.auth.resend({
-            type: "signup",
-            email: form.email.trim().toLowerCase(),
-          });
-        } catch (_) {}
+        setLoading(true);
+        const cleanEmail = form.email.trim().toLowerCase();
+        const { error: otpErr } = await supabase.auth.signInWithOtp({
+          email: cleanEmail,
+          options: {
+            shouldCreateUser: true,
+            data: {
+              full_name: form.fullName.trim(),
+              matric_number: form.studentId.trim().toUpperCase(),
+              college: form.college,
+              department: form.department,
+              role,
+            },
+          },
+        });
+        setLoading(false);
+        if (otpErr) {
+          setError(otpErr.message);
+          return;
+        }
         if (setToast) {
-          setToast(`📩 Verification email sent to ${form.email.trim().toLowerCase()}! Check your Gmail inbox.`);
+          setToast(`📩 6-digit OTP code sent to ${cleanEmail}! Check your Gmail inbox.`);
         }
         setTimeout(() => {
           if (otpRefs.current[0]) otpRefs.current[0].focus();
@@ -639,7 +651,7 @@
           return;
         }
 
-        // ================= 1. SIGN-UP STEP 1: supabase.auth.signUp() =================
+        // ================= 1. SIGN-UP STEP 1: supabase.auth.signInWithOtp({ email }) =================
         if (signupStep === 1) {
           if (!form.fullName.trim()) return setError("Please enter your Full Name.");
           if (!form.email.trim() || !form.email.toLowerCase().includes("@")) {
@@ -652,10 +664,10 @@
 
           setLoading(true);
           const cleanEmail = form.email.trim().toLowerCase();
-          const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+          const { error: otpSendErr } = await supabase.auth.signInWithOtp({
             email: cleanEmail,
-            password: form.password,
             options: {
+              shouldCreateUser: true,
               data: {
                 full_name: form.fullName.trim(),
                 matric_number: form.studentId.trim().toUpperCase(),
@@ -667,21 +679,15 @@
           });
           setLoading(false);
 
-          if (signUpErr) {
-            return setError(signUpErr.message);
+          if (otpSendErr) {
+            return setError(otpSendErr.message);
           }
 
-          if (signUpData?.user?.id) {
-            setAuthUserId(signUpData.user.id);
-          }
-
-          const demoCode = String(Math.floor(100000 + Math.random() * 900000));
-          setGeneratedOtp(demoCode);
           setOtpDigits(["", "", "", "", "", ""]);
           setResendTimer(60);
           setSignupStep(2);
           if (setToast) {
-            setToast(`📩 Verification email sent to ${cleanEmail}! Check your Gmail inbox.`);
+            setToast(`📩 6-digit OTP code sent to ${cleanEmail}! Check your Gmail inbox.`);
           }
           setTimeout(() => {
             if (otpRefs.current[0]) otpRefs.current[0].focus();
@@ -689,37 +695,31 @@
           return;
         }
 
-        // ================= 2. SIGN-UP STEP 2 (OTP OR GMAIL LINK): supabase.auth.verifyOtp() =================
+        // ================= 2. SIGN-UP STEP 2 (OTP): supabase.auth.verifyOtp({ email, token, type: 'email' }) =================
         if (signupStep === 2) {
           const token = otpDigits.join("");
-          if (token.length < 6) return setError("Please enter the 6-digit OTP code (or click 'I Clicked Confirm Email in Gmail' below).");
+          if (token.length < 6) return setError("Please enter all 6 digits of the OTP sent to your Gmail.");
 
           setLoading(true);
           const cleanEmail = form.email.trim().toLowerCase();
-
-          // If they entered the instant 6-digit OTP code shown in the toast/badge, proceed immediately
-          if (generatedOtp && token === generatedOtp) {
-            try {
-              await supabase.auth.verifyOtp({ email: cleanEmail, token, type: "signup" });
-            } catch (_) {}
-            setLoading(false);
-            if (setToast) {
-              setToast("✔ OTP verified! Now upload your MOUAU Student ID Card or Course Form.");
-            }
-            setSignupStep(3);
-            return;
-          }
-
           const { data: otpData, error: otpErr } = await supabase.auth.verifyOtp({
             email: cleanEmail,
             token,
-            type: "signup",
+            type: "email",
           });
-          setLoading(false);
 
           if (otpErr) {
-            return setError(`${otpErr.message} (Tip: Use code ${generatedOtp} or click "I Clicked Confirm Email in Gmail" below)`);
+            setLoading(false);
+            return setError(otpErr.message);
           }
+
+          // Save the user's chosen password into their newly authenticated session
+          if (form.password) {
+            try {
+              await supabase.auth.updateUser({ password: form.password });
+            } catch (_) {}
+          }
+          setLoading(false);
 
           if (otpData?.user?.id) {
             setAuthUserId(otpData.user.id);
@@ -731,7 +731,7 @@
           return;
         }
 
-        // ================= 3. SIGN-UP STEP 3 (KYC): Upload to `kyc-ids` & save to `profiles` =================
+        // ================= 3. SIGN-UP STEP 3 (KYC): supabase.auth.getUser() + profiles.upsert() =================
         if (signupStep === 3) {
           if (!kycFile && !kycImage) {
             return setError("Please upload a photo of your MOUAU Student ID Card or Course Form for KYC verification.");
@@ -739,9 +739,14 @@
 
           setLoading(true);
           try {
-            const { data: userData } = await supabase.auth.getUser();
-            const uid = userData?.user?.id || authUserId || crypto.randomUUID();
-            const cleanEmail = form.email.trim().toLowerCase();
+            const { data: { user: currentUser }, error: userErr } = await supabase.auth.getUser();
+            if (userErr || !currentUser) {
+              setLoading(false);
+              return setError("No active authenticated session found. Please verify your Gmail OTP in Step 2 first.");
+            }
+
+            const uid = currentUser.id;
+            const cleanEmail = currentUser.email || form.email.trim().toLowerCase();
             let publicKycUrl = kycImage;
 
             if (kycFile) {
@@ -772,6 +777,7 @@
               matric_number: form.studentId.trim().toUpperCase(),
               college: form.college || "CAERSE",
               department: form.department || "Agribusiness and Management",
+              role,
               kyc_image_url: publicKycUrl,
               kyc_status: "pending",
             };
@@ -1216,14 +1222,14 @@
                   </>
                 )}
 
-                {/* ================= SIGN UP STEP 2: 6-DIGIT GMAIL OTP + GMAIL LINK CONFIRM ================= */}
+                {/* ================= SIGN UP STEP 2: 6-DIGIT GMAIL OTP ================= */}
                 {isSignup && signupStep === 2 && (
                   <div className="space-y-4 rounded-2xl border border-blue-800/60 bg-slate-950/70 p-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="text-xs font-bold text-amber-400">📩 Gmail Verification</span>
+                      <span className="text-xs font-bold text-amber-400">📩 Gmail Verification Code</span>
                     </div>
                     <p className="text-xs text-blue-200/80">
-                      Enter the 6-digit OTP code for <strong>{form.email}</strong>, OR click the <strong>"Confirm email address"</strong> link sent to your Gmail inbox:
+                      Enter the 6-digit OTP code sent to <strong>{form.email}</strong>:
                     </p>
 
                     <div className="grid grid-cols-6 gap-2 sm:gap-3" onPaste={handleOtpPaste}>
@@ -1243,31 +1249,6 @@
                       ))}
                     </div>
 
-                    {/* Direct button for users who clicked "Confirm email address" link in Gmail */}
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        setError("");
-                        setLoading(true);
-                        try {
-                          const { data: signInCheck } = await supabase.auth.signInWithPassword({
-                            email: form.email.trim().toLowerCase(),
-                            password: form.password,
-                          });
-                          if (signInCheck?.user?.id) {
-                            setAuthUserId(signInCheck.user.id);
-                          }
-                        } catch (_) {}
-                        setLoading(false);
-                        if (setToast) {
-                          setToast("✔ Gmail confirmed! Proceed with your MOUAU Student KYC upload.");
-                        }
-                        setSignupStep(3);
-                      }}
-                      className="w-full rounded-xl border border-amber-400/50 bg-amber-500/15 py-2.5 px-3 text-xs font-extrabold text-amber-300 transition hover:bg-amber-500/25 hover:text-white">
-                      ✔ I Clicked "Confirm email address" in My Gmail → Continue to Step 3 (KYC)
-                    </button>
-
                     <div className="flex items-center justify-between text-xs">
                       <button
                         type="button"
@@ -1282,7 +1263,7 @@
                           type="button"
                           onClick={sendOtpCode}
                           className="font-extrabold text-amber-400 hover:underline">
-                          Resend Verification Email / OTP
+                          Resend 6-Digit OTP
                         </button>
                       )}
                     </div>
