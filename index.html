@@ -121,7 +121,7 @@
     ];
 
     const LOCATIONS = ["All Locations", "MOUAU, Umudike", "82 Bus Stop & Ndoro", "Umuahia & Surroundings"];
-    const DEPARTMENTS = ["COLPHYS (MOUAU)", "COLNAS (MOUAU)", "COLENG (MOUAU)", "COLMAS (MOUAU)", "COLAMRUD (MOUAU)", "COLVET (MOUAU)", "COLED (MOUAU)", "Umuahia Community"];
+    const DEPARTMENTS = ["CAERSE", "CASAP", "CAFST", "CCSS", "COED", "CEET", "COLMAS", "CNREM", "COLNAS", "COLPAS", "CVM", "SGS"];
 
     const SPONSORED_ADS = [
       { id: "ad-1", title: "Crunchies & Mama Nkechi Combo Week — 20% Off Student ID", category: "Food & Restaurant", target: "MOUAU, Umudike", duration: "14 Days", reach: "4,820 views", description: "Flash your MOUAU or Umudike ID card for free delivery around Main Gate, 82 Bus Stop & Ahiaeke.", whatsapp: "2348023456789", sponsor: "Mama Nkechi Kitchen", verified: true },
@@ -427,7 +427,7 @@
         email: "",
         studentId: "",
         phone: "",
-        department: "COLMAS (MOUAU)",
+        department: "CAERSE",
         password: "",
         agreedTerms: true,
       });
@@ -558,7 +558,7 @@
             name: rawId.includes("@") ? rawId.split("@")[0] : "Tobechi Okafor",
             email: emailVal,
             studentId: rawId.toUpperCase(),
-            department: form.department || "COLMAS (MOUAU)",
+            department: form.department || "CAERSE",
             role,
             interests: selectedInterests,
             verifiedStudent: true,
@@ -606,7 +606,7 @@
             name: form.fullName.trim(),
             email: form.email.trim().toLowerCase(),
             studentId: form.studentId.trim().toUpperCase(),
-            department: form.department || "COLMAS (MOUAU)",
+            department: form.department || "CAERSE",
             role,
             interests: selectedInterests,
             verifiedStudent: false,
