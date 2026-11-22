@@ -947,44 +947,46 @@
                       </div>
                     </div>
 
+                    <div>
+                      <span className="mb-1 block text-xs font-semibold text-blue-200">MOUAU Matric Number</span>
+                      <input
+                        name="studentId"
+                        value={form.studentId}
+                        onChange={update}
+                        className={inputCls}
+                        placeholder="e.g. MOUAU/21/12345"
+                      />
+                    </div>
+
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div>
-                        <span className="mb-1 block text-xs font-semibold text-blue-200">MOUAU Matric Number</span>
-                        <input
-                          name="studentId"
-                          value={form.studentId}
-                          onChange={update}
-                          className={inputCls}
-                          placeholder="e.g. MOUAU/21/12345"
-                        />
-                      </div>
-                      <div>
-                        <span className="mb-1 block text-xs font-semibold text-blue-200">College</span>
+                        <span className="mb-1 block text-xs font-semibold text-blue-200">1. College</span>
                         <select
                           name="college"
                           value={form.college}
                           onChange={(e) => {
                             const selectedCollege = e.target.value;
                             const firstDept = (COLLEGES_MAP[selectedCollege] && COLLEGES_MAP[selectedCollege][0]) || "";
-                            setForm({ ...form, college: selectedCollege, department: firstDept });
+                            setForm((prev) => ({ ...prev, college: selectedCollege, department: firstDept.trim() }));
                           }}
                           className={inputCls}>
                           {DEPARTMENTS.map((c) => <option key={c} value={c}>{c}</option>)}
                         </select>
                       </div>
-                    </div>
 
-                    <div>
-                      <span className="mb-1 block text-xs font-semibold text-blue-200">Department ({form.college})</span>
-                      <select
-                        name="department"
-                        value={form.department}
-                        onChange={update}
-                        className={inputCls}>
-                        {(COLLEGES_MAP[form.college] || []).map((dept) => (
-                          <option key={dept} value={dept}>{dept.trim()}</option>
-                        ))}
-                      </select>
+                      <div>
+                        <span className="mb-1 block text-xs font-semibold text-amber-400">2. Department ({form.college})</span>
+                        <select
+                          name="department"
+                          value={form.department}
+                          onChange={update}
+                          className={inputCls}>
+                          {(COLLEGES_MAP[form.college] || []).map((dept) => {
+                            const cleanDept = dept.trim();
+                            return <option key={cleanDept} value={cleanDept}>{cleanDept}</option>;
+                          })}
+                        </select>
+                      </div>
                     </div>
 
                     <div>
