@@ -990,29 +990,6 @@
                 </div>
               )}
 
-              {/* 3-Step Progress Bar for Sign Up */}
-              {isSignup && (
-                <div className="mt-4 grid grid-cols-3 gap-2">
-                  {[
-                    [1, "1. Account Info"],
-                    [2, "2. Gmail OTP"],
-                    [3, "3. Student KYC"],
-                  ].map(([num, label]) => (
-                    <div
-                      key={num}
-                      className={`rounded-xl border px-2.5 py-1.5 text-center text-[11px] font-extrabold transition ${
-                        signupStep === num
-                          ? "border-[#1D9D21] bg-[#1D9D21]/25 text-white"
-                          : signupStep > num
-                          ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-300"
-                          : "border-blue-800/50 bg-slate-950/50 text-blue-300/60"
-                      }`}>
-                      {signupStep > num ? "✔ " : ""}{label}
-                    </div>
-                  ))}
-                </div>
-              )}
-
               {/* Role Selection on Sign Up (Step 1) */}
               {isSignup && signupStep === 1 && (
                 <div className="mt-4">
