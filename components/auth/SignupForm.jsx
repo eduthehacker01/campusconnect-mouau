@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -23,7 +23,7 @@ export function SignupForm() {
   const nextUrl = searchParams.get("next") || "/";
   const safeNext = nextUrl.startsWith("/") ? nextUrl : "/";
 
-  const [step, setStep] = useState(1); // 1: Account Info | 2: 6-Digit Email OTP | 3: Optional Student KYC
+  const [step, setStep] = useState(1); // 1: Account Info | 2: Optional Student KYC
   const [role, setRole] = useState("Student");
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({
@@ -35,10 +35,6 @@ export function SignupForm() {
     password: "",
     agreedTerms: true,
   });
-
-  const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
-  const [resendTimer, setResendTimer] = useState(60);
-  const otpRefs = useRef([]);
 
   const [kycDocType, setKycDocType] = useState("MOUAU Student ID Card");
   const [kycFile, setKycFile] = useState(null);
@@ -60,29 +56,7 @@ export function SignupForm() {
     return { score: 100, label: "Strong", color: "bg-brand-600" };
   }, [form.password]);
 
-  useEffect(() => {
-    if (step !== 2 || resendTimer <= 0) return;
-    const t = setInterval(() => setResendTimer((r) => (r > 0 ? r - 1 : 0)), 1000);
-    return () => clearInterval(t);
-  }, [step, resendTimer]);
-
   const update = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-
-  const handleOtpChange = (index, val) => {
-    const digit = val.replace(/\D/g, "").slice(-1);
-    const next = [...otpDigits];
-    next[index] = digit;
-    setOtpDigits(next);
-    if (digit && index < 5 && otpRefs.current[index + 1]) {
-      otpRefs.current[index + 1].focus();
-    }
-  };
-
-  const handleOtpKeyDown = (index, e) => {
-    if (e.key === "Backspace" && !otpDigits[index] && index > 0) {
-      otpRefs.current[index - 1]?.focus();
-    }
-  };
 
   const handleKycFile = (e) => {
     const file = e.target.files?.[0];
@@ -126,10 +100,10 @@ export function SignupForm() {
 
       setLoading(true);
       const cleanEmail = form.email.trim().toLowerCase();
-      const { error: otpErr } = await supabase.auth.signInWithOtp({
+      const { error: signUpErr } = await supabase.auth.signUp({
         email: cleanEmail,
+        password: form.password,
         options: {
-          shouldCreateUser: true,
           data: {
             full_name: form.fullName.trim(),
             matric_number: form.studentId.trim().toUpperCase(),
@@ -140,41 +114,14 @@ export function SignupForm() {
         },
       });
       setLoading(false);
-      if (otpErr) return setError(otpErr.message);
+      if (signUpErr) return setError(signUpErr.message);
 
-      setOtpDigits(["", "", "", "", "", ""]);
-      setResendTimer(60);
+      showToast("Account created! Complete your optional profile verification.");
       setStep(2);
-      showToast(`6-digit OTP sent to ${cleanEmail}. Check your inbox.`);
       return;
     }
 
     if (step === 2) {
-      const token = otpDigits.join("");
-      if (token.length < 6) {
-        return setError("Please enter all 6 digits of the verification code.");
-      }
-      setLoading(true);
-      const cleanEmail = form.email.trim().toLowerCase();
-      const { error: verifyErr } = await supabase.auth.verifyOtp({
-        email: cleanEmail,
-        token,
-        type: "email",
-      });
-      if (verifyErr) {
-        setLoading(false);
-        return setError(verifyErr.message);
-      }
-      try {
-        await supabase.auth.updateUser({ password: form.password });
-      } catch (_) {}
-      setLoading(false);
-      showToast("Email verified! Complete your profile setup.");
-      setStep(3);
-      return;
-    }
-
-    if (step === 3) {
       setLoading(true);
       const {
         data: { user },
@@ -182,7 +129,9 @@ export function SignupForm() {
       } = await supabase.auth.getUser();
       if (userErr || !user) {
         setLoading(false);
-        return setError("Session expired. Please verify your OTP again.");
+        showToast("Account created! You can now log in.");
+        router.push(`/login?next=${encodeURIComponent(safeNext)}`);
+        return;
       }
 
       let publicKycUrl = null;
@@ -228,14 +177,12 @@ export function SignupForm() {
     <div>
       <h1 className="text-2xl font-black text-white">
         {step === 1 && "Create Your Free Account"}
-        {step === 2 && "Verify Your Email (OTP)"}
-        {step === 3 && "Student Verification (KYC)"}
+        {step === 2 && "Student Verification (KYC)"}
       </h1>
       <p className="mt-1 text-xs text-brand-200/80">
         {step === 1 &&
           "Join MOUAU Connect to connect with sellers, apply for jobs, and join campus communities."}
-        {step === 2 && `Enter the 6-digit code sent to ${form.email}.`}
-        {step === 3 &&
+        {step === 2 &&
           "Upload your Student ID Card or Course Form (optional for non-students)."}
       </p>
 
@@ -403,39 +350,6 @@ export function SignupForm() {
 
         {step === 2 && (
           <div className="space-y-4 rounded-2xl border border-brand-800/70 bg-forest-950/75 p-4">
-            <div className="grid grid-cols-6 gap-2">
-              {otpDigits.map((digit, idx) => (
-                <input
-                  key={idx}
-                  ref={(el) => (otpRefs.current[idx] = el)}
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={1}
-                  value={digit}
-                  onChange={(e) => handleOtpChange(idx, e.target.value)}
-                  onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                  aria-label={`OTP Digit ${idx + 1}`}
-                  className="h-12 w-full rounded-xl border border-brand-700 bg-forest-900 text-center text-lg font-black text-white focus:border-brand-500 focus:outline-none"
-                />
-              ))}
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="font-bold text-brand-300 hover:text-white"
-              >
-                ← Edit details
-              </button>
-              <span className="text-brand-200/75">
-                {resendTimer > 0 ? `Resend in ${resendTimer}s` : "Check spam folder"}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {step === 3 && (
-          <div className="space-y-4 rounded-2xl border border-brand-800/70 bg-forest-950/75 p-4">
             <div>
               <label className="mb-1 block text-xs font-semibold text-brand-200">
                 Verification Document Type
@@ -493,9 +407,7 @@ export function SignupForm() {
           {loading
             ? "Processing…"
             : step === 1
-            ? "Send 6-Digit Email OTP →"
-            : step === 2
-            ? "Verify OTP & Continue →"
+            ? "Create Account & Continue →"
             : "Finish Creating Account →"}
         </button>
       </form>
